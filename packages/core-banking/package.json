@@ -1,0 +1,17 @@
+{
+    "name": "@banking-sim/core-banking",
+    "version": "0.1.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+      "build": "tsc"
+    },
+    "dependencies": {
+      "uuid": "^8.3.2"
+    },
+    "devDependencies": {
+      "@types/uuid": "^8.3.3",
+      "typescript": "^4.5.4"
+    }
+  }
+  
