@@ -6,6 +6,7 @@ export * from './controllers/admin-customer-controller';
 export * from './controllers/admin-transaction-controller';
 export * from './controllers/admin-system-controller';
 
+export * from './controllers/admin-database-controller';
 
 
 import { testCoreBanking } from '@banking-sim/core-banking';

@@ -1,7 +1,8 @@
 // packages/core-banking/src/data/seed-data.ts
 import { v4 as uuidv4 } from 'uuid';
-import { InMemoryDatabase } from './in-memory-db';
+import { IBank, InMemoryDatabase } from './in-memory-db';
 import { AccountType, AccountStatus } from '@banking-sim/common';
+import { DatabaseService } from '../services/database-service';
 
 export function seedBankData(bankId: string): void {
   const db = InMemoryDatabase.getInstance();
@@ -148,7 +149,22 @@ export function seedBankData(bankId: string): void {
       timestamp: new Date(Date.now() - 5 * 86400000) // Five days ago
     }
   ]);
+    
+  const dbService = new DatabaseService(bankId);
   
-  console.log(`Seeded test data for bank: ${bankId}`);
-  console.log(`Created ${db.customers.size} customers and ${db.accounts.size} accounts`);
+    const banks: IBank[] = [
+      { id: 'bank1', name: 'First National Bank' },
+      { id: 'bank2', name: 'Global Trust Bank' },
+      { id: 'bank3', name: 'City Savings Bank' },
+      // Add more banks as needed
+    ];
+  
+    for (const bank of banks) {
+      try {
+        dbService.addBank(bank);
+      } catch (error) {
+        console.error(`Error adding bank ${bank.id}: ${(error as Error).message}`);
+      }
+    }
+
 }

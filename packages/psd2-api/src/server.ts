@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { AccountController } from './controllers/account-controller';
 // import { PaymentController } from './controllers/payment-controller';
-// import { ConsentController } from './controllers/consent-controller';
+import { ConsentController } from './controllers/consent-controller';
 // import { TransactionController } from './controllers/transaction-controller';
 
 export class PSD2Server {
@@ -15,7 +15,7 @@ export class PSD2Server {
   // Controllers
   private accountController: AccountController;
 //   private paymentController: PaymentController;
-//   private consentController: ConsentController;
+  private consentController: ConsentController;
 //   private transactionController: TransactionController;
 
   constructor(bankId: string, port: number) {
@@ -26,7 +26,7 @@ export class PSD2Server {
     // Initialize controllers
     this.accountController = new AccountController(bankId);
     // this.paymentController = new PaymentController(bankId);
-    // this.consentController = new ConsentController(bankId);
+    this.consentController = new ConsentController(bankId);
     // this.transactionController = new TransactionController(bankId);
     
     this.configureMiddleware();
@@ -57,9 +57,9 @@ export class PSD2Server {
 
   private configureRoutes(): void {
     // Consent endpoints
-    // this.app.post('/api/v1/consent', this.consentController.createConsent.bind(this.consentController));
-    // this.app.get('/api/v1/consent/:consent_id', this.consentController.getConsent.bind(this.consentController));
-    // this.app.delete('/api/v1/consent/:consent_id', this.consentController.revokeConsent.bind(this.consentController));
+    this.app.post('/api/v1/consent', this.consentController.createConsent.bind(this.consentController));
+    this.app.get('/api/v1/consent/:consent_id', this.consentController.getConsent.bind(this.consentController));
+    this.app.delete('/api/v1/consent/:consent_id', this.consentController.revokeConsent.bind(this.consentController));
     
     // Payment endpoints
     // this.app.post('/api/v1/payments/domestic', this.paymentController.createDomesticPayment.bind(this.paymentController));

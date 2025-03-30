@@ -15,6 +15,7 @@ export * from './models/account';
 export * from './services/customer-service';
 export * from './services/account-service';
 export * from './services/database-service';
+export * from './services/consent-service';
 
 // Export database
 export * from './data/in-memory-db';

@@ -6,6 +6,11 @@ import { AdminCustomerController } from './controllers/admin-customer-controller
 import { AdminTransactionController } from './controllers/admin-transaction-controller';
 import { AdminSystemController } from './controllers/admin-system-controller';
 import { AdminDatabaseController } from './controllers/admin-database-controller';
+import { 
+  verifyToken, 
+  requireRole, 
+  requireScope 
+} from '@banking-sim/auth-service';
 
 export class AdminServer {
   private app: express.Application;
@@ -54,7 +59,24 @@ export class AdminServer {
       console.log(`[ADMIN] [${new Date().toISOString()}] ${req.method} ${req.url}`);
       next();
     });
+    
+    // Public health check endpoint (no authentication required)
+    this.app.get('/admin/health', (req: Request, res: Response) => {
+      res.status(200).json({
+        status: 'UP',
+        bankId: this.bankId,
+        timestamp: new Date().toISOString()
+      });
+    });
+    
+    // Apply authentication to all API routes
+    this.app.use('/admin/api', verifyToken);
+    
+    // Apply admin role check to all API routes
+    this.app.use('/admin/api', requireRole('admin'));
   }
+  
+
 
   private configureRoutes(): void {
     // Customer management
@@ -65,12 +87,82 @@ export class AdminServer {
     // this.app.delete('/admin/api/customers/:customerId', this.customerController.deleteCustomer.bind(this.customerController));
     
     // Account management
-    this.app.post('/admin/api/accounts', this.accountController.createAccount.bind(this.accountController));
-    this.app.get('/admin/api/accounts', this.accountController.getAccounts.bind(this.accountController));
-    this.app.get('/admin/api/accounts/:accountId', this.accountController.getAccount.bind(this.accountController));
-    this.app.put('/admin/api/accounts/:accountId', this.accountController.updateAccount.bind(this.accountController));
-    this.app.delete('/admin/api/accounts/:accountId', this.accountController.deleteAccount.bind(this.accountController));
-    this.app.post('/admin/api/accounts/:accountId/balance', this.accountController.updateBalance.bind(this.accountController));
+  // Public health check endpoint (no authentication required)
+  this.app.get('/admin/health', (req: Request, res: Response) => {
+    res.status(200).json({
+      status: 'UP',
+      bankId: this.bankId,
+      timestamp: new Date().toISOString()
+    });
+  });
+  
+  // Account management (protected routes)
+  this.app.post(
+    '/admin/api/accounts', 
+    verifyToken,
+    requireRole('admin'),
+    requireScope('admin:write'),
+    this.accountController.createAccount.bind(this.accountController)
+  );
+  
+  this.app.get(
+    '/admin/api/accounts', 
+    verifyToken,
+    requireRole('admin'),
+    requireScope('admin:read'),
+    this.accountController.getAccounts.bind(this.accountController)
+  );
+  
+  this.app.get(
+    '/admin/api/accounts/:accountId', 
+    verifyToken,
+    requireRole('admin'),
+    requireScope('admin:read'),
+    this.accountController.getAccount.bind(this.accountController)
+  );
+  
+  this.app.put(
+    '/admin/api/accounts/:accountId', 
+    verifyToken,
+    requireRole('admin'),
+    requireScope('admin:write'),
+    this.accountController.updateAccount.bind(this.accountController)
+  );
+  
+  this.app.delete(
+    '/admin/api/accounts/:accountId', 
+    verifyToken,
+    requireRole('admin'),
+    requireScope('admin:write'),
+    this.accountController.deleteAccount.bind(this.accountController)
+  );
+  
+  this.app.post(
+    '/admin/api/accounts/:accountId/balance', 
+    verifyToken,
+    requireRole('admin'),
+    requireScope('admin:write'),
+    this.accountController.updateBalance.bind(this.accountController)
+  );
+  
+  // Database inspection (protected routes)
+  this.app.get(
+    '/admin/api/database', 
+    verifyToken,
+    requireRole('admin'),
+    requireScope('admin:read'),
+    this.databaseController.getDatabaseSnapshot.bind(this.databaseController)
+  );
+  
+  this.app.get(
+    '/admin/api/database/stats', 
+    verifyToken,
+    requireRole('admin'),
+    requireScope('admin:read'),
+    this.databaseController.getDatabaseStats.bind(this.databaseController)
+  );
+  
+
     
     // Transaction management
     // this.app.post('/admin/api/transactions', this.transactionController.createTransaction.bind(this.transactionController));
@@ -93,15 +185,35 @@ export class AdminServer {
       });
     });
     
-    // Error handling middleware
-    this.app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-      console.error(`[ADMIN ERROR] ${err.message}`);
-      res.status(500).json({
-        success: false,
-        error: 'Internal Server Error',
-        message: err.message
-      });
+// Error handling middleware
+this.app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(`[ADMIN ERROR] ${err.message}`);
+  
+  // Handle authentication errors
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized',
+      message: 'Invalid token'
     });
+  }
+  
+  if (err.name === 'TokenExpiredError') {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized',
+      message: 'Token expired'
+    });
+  }
+  
+  // Handle other errors
+  res.status(500).json({
+    success: false,
+    error: 'Internal Server Error',
+    message: err.message
+  });
+});
+
     
     // 404 handler
     this.app.use((req: Request, res: Response) => {

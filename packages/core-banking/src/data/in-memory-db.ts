@@ -27,6 +27,41 @@ export interface ITransaction {
   timestamp: Date;
 }
 
+export enum ConsentPermission {
+  ACCOUNT_DETAILS = 'account:details:read',
+  TRANSACTIONS = 'transactions:read',
+  BALANCE = 'balances:read'
+  // Add more permissions as needed
+}
+
+export enum ConsentStatus {
+  AWAITING_AUTHORIZATION = 'AWAITING_AUTHORIZATION',
+  AUTHORIZED = 'AUTHORIZED',
+  REVOKED = 'REVOKED'
+}
+
+export interface IBank {
+  id: string;
+  name: string;
+  // Add other relevant fields
+}
+
+
+export interface IConsent {
+  consent_id: string;
+  customer_id: string;          // Link the consent to a specific user
+  account_ids: string[];        // Array of account IDs this consent applies to
+  permissions: ConsentPermission[];        // What permissions are granted
+  status: ConsentStatus;
+  created_at: Date;
+  expires_at: Date;
+  authorization_url: string;
+  bank_id: string;          // The bank ID for which this consent is valid
+  psu_ip_address: string
+  psu_user_agent: string
+  tpp_id: string
+}
+
 export class InMemoryDatabase {
   private static instance: InMemoryDatabase;
   
@@ -37,6 +72,8 @@ export class InMemoryDatabase {
   payments: Map<string, any> = new Map();
   mandates: Map<string, any> = new Map();
   consents: Map<string, any> = new Map();
+  banks: Map<string, IBank> = new Map();
+
 
   private constructor() {}
 

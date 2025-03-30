@@ -1,6 +1,6 @@
 // scripts/start-bank.ts
 import {PSD2Server} from '@banking-sim/psd2-api';
-
+import {AuthServer} from '@banking-sim/auth-service';
 import  {AdminServer}  from '@banking-sim/admin-api';
 import  {seedBankData}  from '@banking-sim/core-banking';
 import minimist from 'minimist';
@@ -20,6 +20,8 @@ psd2Server.start();
 // Start the Admin API server
 const adminServer = new AdminServer(bankName, adminPort);
 adminServer.start();
+
+
 
 console.log(`Bank "${bankName}" started with:`);
 console.log(`- PSD2 API on port ${psd2Port}`);
