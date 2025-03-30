@@ -16,6 +16,7 @@ export * from './services/customer-service';
 export * from './services/account-service';
 export * from './services/database-service';
 export * from './services/consent-service';
+export * from './services/transaction-service';
 
 // Export database
 export * from './data/in-memory-db';

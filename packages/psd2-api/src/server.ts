@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import { AccountController } from './controllers/account-controller';
 // import { PaymentController } from './controllers/payment-controller';
 import { ConsentController } from './controllers/consent-controller';
-// import { TransactionController } from './controllers/transaction-controller';
+import { TransactionController } from './controllers/transaction-controller';
 
 export class PSD2Server {
   private app: express.Application;
@@ -16,7 +16,7 @@ export class PSD2Server {
   private accountController: AccountController;
 //   private paymentController: PaymentController;
   private consentController: ConsentController;
-//   private transactionController: TransactionController;
+  private transactionController: TransactionController;
 
   constructor(bankId: string, port: number) {
     this.bankId = bankId;
@@ -27,7 +27,7 @@ export class PSD2Server {
     this.accountController = new AccountController(bankId);
     // this.paymentController = new PaymentController(bankId);
     this.consentController = new ConsentController(bankId);
-    // this.transactionController = new TransactionController(bankId);
+    this.transactionController = new TransactionController(bankId);
     
     this.configureMiddleware();
     this.configureRoutes();
@@ -73,7 +73,7 @@ export class PSD2Server {
     this.app.get('/api/v1/accounts/:account_id/balance', this.accountController.getAccountBalance.bind(this.accountController));
     
     // Transaction endpoints
-    // this.app.get('/api/v1/accounts/:account_id/transactions', this.transactionController.getAccountTransactions.bind(this.transactionController));
+    this.app.get('/api/v1/accounts/:account_id/transactions', this.transactionController.getAccountTransactions.bind(this.transactionController));
     
     // Health check endpoint
     this.app.get('/health', (req: Request, res: Response) => {

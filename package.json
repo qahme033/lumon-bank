@@ -6,6 +6,7 @@
   "workspaces": [
     "packages/*"
   ],
+  
   "scripts": {
     "build": "npx lerna run build --stream --scope=@banking-sim/common && lerna run build --stream --ignore=@banking-sim/common",
     "start:bank1": "ts-node scripts/start-bank.ts --name=bank1 --port=3001",

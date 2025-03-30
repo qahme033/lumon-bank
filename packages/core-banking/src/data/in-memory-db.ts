@@ -113,7 +113,7 @@ export class InMemoryDatabase {
           .filter(([_, mandate]) => mandate.bankId === bankId)
           .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {}),
         consents: Array.from(this.consents.entries())
-          .filter(([_, consent]) => consent.bankId === bankId)
+          .filter(([_, consent]) => consent.bank_id === bankId)
           .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})
       };
     }

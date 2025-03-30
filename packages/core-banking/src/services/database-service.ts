@@ -1,5 +1,5 @@
 // packages/core-banking/src/services/database-service.ts
-import { ConsentStatus, IBank, IConsent, InMemoryDatabase } from '../data/in-memory-db';
+import { ConsentStatus, IBank, IConsent, InMemoryDatabase, ITransaction } from '../data/in-memory-db';
 
 export class DatabaseService {
   private db: InMemoryDatabase;
@@ -44,4 +44,22 @@ export class DatabaseService {
     }
     return consent.status;
   }
+    // Retrieves a transaction by its ID.
+    async getTransaction(transactionId: string): Promise<ITransaction> {
+      // Iterate over each account's transaction list in the in-memory database.
+      for (const [accountId, txList] of this.db.transactions.entries()) {
+        for (const transaction of txList) {
+          if (transaction.id === transactionId) {
+            // Verify that the transaction's account belongs to the current bank.
+            const account = this.db.accounts.get(accountId);
+            if (account && account.bankId === this.bankId) {
+              return transaction;
+            } else {
+              throw new Error(`Transaction with ID ${transactionId} does not belong to bank ${this.bankId}.`);
+            }
+          }
+        }
+      }
+      throw new Error(`Transaction with ID ${transactionId} not found.`);
+    }
 }

@@ -157,34 +157,34 @@ this.app.get('/authorize', async (req: Request, res: Response) => {
 this.app.post('/authorize', async (req: Request, res: Response) => {
   const { consent_id, action } = req.body;
 
-  // if (!consent_id || !action) {
-  //     return res.status(400).send('Bad Request: consent_id and action are required');
-  // }
+  if (!consent_id || !action) {
+      return res.status(400).send('Bad Request: consent_id and action are required');
+  }
 
-  // const db = InMemoryDatabase.getInstance();
-  // const consent = db.consents.get(consent_id) as IConsent | undefined;
+  const db = InMemoryDatabase.getInstance();
+  const consent = db.consents.get(consent_id) as IConsent | undefined;
 
-  // if (!consent) {
-  //     return res.status(404).send('Consent not found');
-  // }
+  if (!consent) {
+      return res.status(404).send('Consent not found');
+  }
 
-  // if (consent.status !== ConsentStatus.AWAITING_AUTHORIZATION) {
-  //     return res.status(400).send('Consent is not awaiting authorization');
-  // }
+  if (consent.status !== ConsentStatus.AWAITING_AUTHORIZATION) {
+      return res.status(400).send('Consent is not awaiting authorization');
+  }
 
-  // if (action === 'approve') {
-  //     consent.status = ConsentStatus.AUTHORIZED;
-  // } else if (action === 'deny') {
-  //     consent.status = ConsentStatus.REVOKED;
-  // } else {
-  //     return res.status(400).send('Invalid action');
-  // }
+  if (action === 'approve') {
+      consent.status = ConsentStatus.AUTHORIZED;
+  } else if (action === 'deny') {
+      consent.status = ConsentStatus.REVOKED;
+  } else {
+      return res.status(400).send('Invalid action');
+  }
 
-  // // Update the consent in the database
-  // db.consents.set(consent_id, consent);
+  // Update the consent in the database
+  db.consents.set(consent_id, consent);
 
   // Render the result page
-  return renderAuthorizationResult(res, {status : 'consent'});
+  return renderAuthorizationResult(res, consent);
 })
   }
   
