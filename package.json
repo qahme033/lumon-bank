@@ -6,7 +6,6 @@
   "workspaces": [
     "packages/*"
   ],
-  
   "scripts": {
     "build": "npx lerna run build --stream --scope=@banking-sim/common && lerna run build --stream --ignore=@banking-sim/common",
     "start:bank1": "ts-node scripts/start-bank.ts --name=bank1 --port=3001",
@@ -15,20 +14,23 @@
     "setup-demo": "ts-node scripts/setup-demo.ts",
     "test:setup": "ts-node scripts/test-setup.ts",
     "test:bank": "ts-node scripts/test-bank.ts"
-    
   },
   "dependencies": {
+    "@banking-sim/auth-service": "^0.1.0",
     "@banking-sim/common": "^0.1.0",
     "@banking-sim/core-banking": "^0.1.0",
     "@banking-sim/psd2-api": "^0.1.0",
-    "@banking-sim/auth-service": "^0.1.0",
+    "axios": "^1.8.4",
+    "dotenv": "^16.4.7",
     "learna": "^1.0.1",
     "minimist": "^1.2.8",
     "passport": "^0.7.0",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
+    "@types/axios": "^0.9.36",
     "@types/minimist": "^1.2.5",
-    "typescript": "^5.2.2"
+    "@types/node": "^22.13.14",
+    "typescript": "^5.8.2"
   }
 }
