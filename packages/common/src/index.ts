@@ -9,3 +9,4 @@ export function getGreeting(name: string): string {
 // Make sure it exports all your types
 export * from './types/account';
 
+export * from './api/account'

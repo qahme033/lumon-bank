@@ -25,6 +25,22 @@ export enum AccountType {
     createdAt: Date;
   }
   
+  export interface IBalance {
+    available: number;
+    current: number;
+    pending: number;
+  }
+
+  export interface IBalanceResponse {
+    account_id: string;
+    balances: {
+      balance_type: string;
+      amount: number;
+      currency: string;
+    }[];
+    timestamp: string;
+  }
+
   // Add a simple utility function to ensure the module is recognized
   export function formatAccountId(id: string): string {
     return `ACC-${id}`;

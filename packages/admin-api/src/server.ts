@@ -29,7 +29,7 @@ export class AdminServer {
     this.app = express();
     
     // Initialize controllers
-    this.accountController = new AdminAccountController(bankId);
+    this.accountController = new AdminAccountController();
     // this.customerController = new AdminCustomerController(bankId);
     // this.transactionController = new AdminTransactionController(bankId);
     // this.systemController = new AdminSystemController(bankId);
