@@ -10,3 +10,4 @@ export function getGreeting(name: string): string {
 export * from './types/account';
 
 export * from './api/account'
+export * from './api/customer'

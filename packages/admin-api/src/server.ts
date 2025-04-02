@@ -19,7 +19,7 @@ export class AdminServer {
   
   // Controllers
   private accountController: AdminAccountController;
-//   private customerController: AdminCustomerController;
+  private customerController: AdminCustomerController;
 //   private transactionController: AdminTransactionController;
 //   private systemController: AdminSystemController;
     private databaseController: AdminDatabaseController
@@ -30,7 +30,7 @@ export class AdminServer {
     
     // Initialize controllers
     this.accountController = new AdminAccountController();
-    // this.customerController = new AdminCustomerController(bankId);
+    this.customerController = new AdminCustomerController();
     // this.transactionController = new AdminTransactionController(bankId);
     // this.systemController = new AdminSystemController(bankId);
     this.databaseController = new AdminDatabaseController(bankId);
@@ -80,11 +80,11 @@ export class AdminServer {
 
   private configureRoutes(): void {
     // Customer management
-    // this.app.post('/admin/api/customers', this.customerController.createCustomer.bind(this.customerController));
-    // this.app.get('/admin/api/customers', this.customerController.getCustomers.bind(this.customerController));
-    // this.app.get('/admin/api/customers/:customerId', this.customerController.getCustomer.bind(this.customerController));
-    // this.app.put('/admin/api/customers/:customerId', this.customerController.updateCustomer.bind(this.customerController));
-    // this.app.delete('/admin/api/customers/:customerId', this.customerController.deleteCustomer.bind(this.customerController));
+    this.app.post('/admin/api/customers', this.customerController.createCustomer.bind(this.customerController));
+    this.app.get('/admin/api/customers', this.customerController.getCustomers.bind(this.customerController));
+    this.app.get('/admin/api/customers/:customerId', this.customerController.getCustomer.bind(this.customerController));
+    this.app.put('/admin/api/customers/:customerId', this.customerController.updateCustomer.bind(this.customerController));
+    this.app.delete('/admin/api/customers/:customerId', this.customerController.deleteCustomer.bind(this.customerController));
     
     // Account management
   // Public health check endpoint (no authentication required)
