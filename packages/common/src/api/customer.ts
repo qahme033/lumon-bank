@@ -68,8 +68,8 @@ class CustomerAPI {
    * Delete a customer.
    * @param customerId - The ID of the customer to delete.
    */
-  async deleteCustomer(customerId: string): Promise<void> {
-    await axiosInstance.delete(`/customers/${customerId}`);
+  async deleteCustomer(customerId: string) {
+    return await axiosInstance.delete(`/customers/${customerId}`);
   }
 }
 

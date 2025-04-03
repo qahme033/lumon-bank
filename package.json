@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npx lerna run build --stream --scope=@banking-sim/common && lerna run build --stream --ignore=@banking-sim/common",
+    "build": "npx lerna run build --stream --scope=@banking-sim/common && npx lerna run build --stream --scope=@banking-sim/core-banking && npx lerna run build --stream --scope=@banking-sim/admin-api && npx lerna run build --stream --scope=@banking-sim/auth-service && npx lerna run build --stream --scope=@banking-sim/psd2-api",
     "start:bank1": "ts-node scripts/start-bank.ts --name=bank1 --port=3001",
     "start:bank2": "ts-node scripts/start-bank.ts --name=bank2 --port=3002",
     "start:all": "ts-node scripts/start-all.ts --name=bank1 --port=3001",

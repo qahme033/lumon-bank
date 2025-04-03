@@ -11,3 +11,4 @@ export * from './types/account';
 
 export * from './api/account'
 export * from './api/customer'
+export * from './api/transaction'

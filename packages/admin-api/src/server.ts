@@ -20,8 +20,8 @@ export class AdminServer {
   // Controllers
   private accountController: AdminAccountController;
   private customerController: AdminCustomerController;
-//   private transactionController: AdminTransactionController;
-//   private systemController: AdminSystemController;
+  private transactionController: AdminTransactionController;
+  private systemController: AdminSystemController;
     private databaseController: AdminDatabaseController
   constructor(bankId: string, port: number) {
     this.bankId = bankId;
@@ -31,8 +31,8 @@ export class AdminServer {
     // Initialize controllers
     this.accountController = new AdminAccountController();
     this.customerController = new AdminCustomerController();
-    // this.transactionController = new AdminTransactionController(bankId);
-    // this.systemController = new AdminSystemController(bankId);
+    this.transactionController = new AdminTransactionController(bankId);
+    this.systemController = new AdminSystemController(bankId);
     this.databaseController = new AdminDatabaseController(bankId);
 
     
@@ -165,13 +165,12 @@ export class AdminServer {
 
     
     // Transaction management
-    // this.app.post('/admin/api/transactions', this.transactionController.createTransaction.bind(this.transactionController));
-    // this.app.get('/admin/api/transactions', this.transactionController.getTransactions.bind(this.transactionController));
+    this.app.get('/admin/api/transaction/:transactionId', this.transactionController.getTransaction.bind(this.transactionController));
     
     // System management
-    // this.app.post('/admin/api/system/reset', this.systemController.resetSystem.bind(this.systemController));
-    // this.app.post('/admin/api/system/seed', this.systemController.seedData.bind(this.systemController));
-    // this.app.get('/admin/api/system/status', this.systemController.getStatus.bind(this.systemController));
+    this.app.post('/admin/api/system/reset', this.systemController.resetSystem.bind(this.systemController));
+    this.app.post('/admin/api/system/seed', this.systemController.seedData.bind(this.systemController));
+    this.app.get('/admin/api/system/status', this.systemController.getStatus.bind(this.systemController));
 
     this.app.get('/admin/api/database', this.databaseController.getDatabaseSnapshot.bind(this.databaseController));
     this.app.get('/admin/api/database/stats', this.databaseController.getDatabaseStats.bind(this.databaseController));
