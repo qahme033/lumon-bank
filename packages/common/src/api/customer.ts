@@ -1,5 +1,5 @@
 // packages/common/src/api/customer.ts
-import { ICustomer } from '../types/customer';
+import { ICustomer } from '../types/types';
 import axiosInstance from './axios-instance';
 
 interface CreateCustomerPayload {

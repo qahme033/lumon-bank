@@ -2,6 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthService } from './auth-service';
+import { consentAPI, ConsentPermission, ConsentStatus } from '@banking-sim/common';
 
 // JWT secret (use environment variables in production)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -74,6 +75,52 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
       });
     }
   };
+
+    /**
+ * Middleware to verify that the request has a valid, authorized customer consent
+ * with the required permissions.
+ * 
+ * @param requiredPermissions - An array of ConsentPermission values required for the operation.
+ */
+    export function verifyConsent(requiredPermissions: ConsentPermission[]) {
+      return async (req: Request, res: Response, next: NextFunction) => {
+        // Look for a consent ID in headers ('x-consent-id') or query parameters ('consent_id').
+        const consentId = req.headers['x-consent-id'] || req.query.consent_id;
+        if (!consentId) {
+          return res.status(400).json({ error: 'Consent ID is missing' });
+        }
+    
+        try {
+          const consent = await consentAPI.getConsent(String(consentId));
+          if (!consent) {
+            return res.status(404).json({ error: 'Consent not found' });
+          }
+          
+          // Check that the consent is authorized.
+          if (consent.status !== ConsentStatus.AUTHORIZED) {
+            return res.status(403).json({ error: 'Consent is not authorized' });
+          }
+          
+          // Check that the consent includes all the required permissions.
+          const hasAllPermissions = requiredPermissions.every(permission =>
+            consent.permissions.includes(permission)
+          );
+          
+          if (!hasAllPermissions) {
+            return res.status(403).json({ error: 'Insufficient consent permissions' });
+          }
+          
+          // Optionally, attach the consent object to the request for further use.
+          (req as any).consent = consent;
+          
+          next();
+        } catch (error: any) {
+          console.error('Error verifying consent:', error.message);
+          return res.status(500).json({ error: 'Failed to verify consent' });
+        }
+      };
+    }
+      
   
 // Middleware to check scope
 export const requireScope = (scope: string) => {

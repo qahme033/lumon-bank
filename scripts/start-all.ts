@@ -1,6 +1,6 @@
 // scripts/start-all.ts
 import { AuthServer } from '@banking-sim/auth-service';
-// import { PSD2Server } from '@banking-sim/psd2-api';
+import { PSD2Server } from '@banking-sim/psd2-api';
 import { AdminServer } from '@banking-sim/admin-api';
 import  {seedBankData}  from '@banking-sim/core-banking';
 import { CoreBankingServer } from '@banking-sim/core-banking';
@@ -18,8 +18,8 @@ const authServer = new AuthServer(basePort);
 authServer.start();
 
 // Start the PSD2 API server
-// const psd2Server = new PSD2Server(bankName, basePort + 1);
-// psd2Server.start();
+const psd2Server = new PSD2Server(bankName, basePort + 1);
+psd2Server.start();
 
 // Start the Admin API server
 const adminServer = new AdminServer(bankName, basePort + 2);

@@ -13,20 +13,30 @@ export class ConsentController {
   // Create a new consent
   async createConsent(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { customerId, accountIds, permissions, psuIpAddress, psuUserAgent, tppId } = req.body;
+      const { customer_id, account_ids, permissions, psu_ip_address, psu_user_agent, tpp_id } = req.body;
       const consent: IConsent = await this.consentService.createConsent(
-        customerId,
-        accountIds,
-        permissions,
-        psuIpAddress,
-        psuUserAgent,
-        tppId
+        customer_id, account_ids, permissions, psu_ip_address, psu_user_agent, tpp_id
       );
       res.status(201).json(consent);
     } catch (error) {
       next(error);
     }
   }
+
+    // Create a new consent
+    async updateConsent(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const { consent_id } = req.params;
+        const { status, permissions } = req.body;
+        const consent = await this.consentService.updateConsent(
+          consent_id,
+          {status, permissions}
+        );
+        res.status(201).json(consent);
+      } catch (error) {
+        next(error);
+      }
+    }
 
   // Get a specific consent
   async getConsent(req: Request, res: Response, next: NextFunction): Promise<void> {

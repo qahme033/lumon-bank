@@ -76,7 +76,8 @@ export class CoreBankingServer {
     // Consent endpoints
     this.app.post('/api/v1/consent', this.consentController.createConsent.bind(this.consentController));
     this.app.get('/api/v1/consent/:consent_id', this.consentController.getConsent.bind(this.consentController));
-    this.app.delete('/api/v1/consent/:consent_id', this.consentController.revokeConsent.bind(this.consentController));
+    this.app.put('/api/v1/consent/:consent_id', this.consentController.updateConsent.bind(this.consentController));
+    this.app.put('/api/v1/consent/:consent_id/revoke', this.consentController.revokeConsent.bind(this.consentController));
 
     // Transaction endpoints
     this.app.post('/api/v1/accounts/:account_id/transactions', this.transactionController.createTransaction.bind(this.transactionController));

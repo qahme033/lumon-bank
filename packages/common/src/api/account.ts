@@ -1,5 +1,5 @@
 // packages/common/src/api/account.ts
-import { AccountStatus, AccountType, IAccount, IBalanceResponse } from '../types/account';
+import { AccountStatus, AccountType, IAccount, IBalanceResponse } from '../types/types';
 import axiosInstance from './axios-instance';
 
 interface CreateAccountPayload {
