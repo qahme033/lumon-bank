@@ -1,12 +1,9 @@
-import { ConsentService } from '@banking-sim/core-banking';
+// packages/admin-api/src/controllers/consent-controller.ts
 import { Request, Response } from 'express';
+import { consentAPI } from '@banking-sim/common';
 
 export class ConsentController {
-  private consentService: ConsentService;
-
-  constructor(bankId: string) {
-    this.consentService = new ConsentService(bankId);
-  }
+  private consentAPI = consentAPI;
 
   /**
    * Create a new consent record.
@@ -30,16 +27,10 @@ export class ConsentController {
         return;
       }
       
-      const consent = await this.consentService.createConsent(
-        customer_id,
-        account_ids,
-        permissions,
-        psu_ip_address,
-        psu_user_agent,
-        tpp_id
-      );
+      const payload = { customer_id, account_ids, permissions, psu_ip_address, psu_user_agent, tpp_id };
+      const consent = await this.consentAPI.createConsent(payload);
       res.status(201).json(consent);
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   }
@@ -51,13 +42,13 @@ export class ConsentController {
   async getConsent(req: Request, res: Response): Promise<void> {
     try {
       const consentId = req.params.consent_id;
-      const consent = await this.consentService.getConsent(consentId);
+      const consent = await this.consentAPI.getConsent(consentId);
       if (!consent) {
         res.status(404).json({ error: 'Consent not found' });
       } else {
         res.status(200).json(consent);
       }
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   }
@@ -69,14 +60,14 @@ export class ConsentController {
   async updateConsent(req: Request, res: Response): Promise<void> {
     try {
       const consentId = req.params.consent_id;
-      const { permissions, status } = req.body;
-      const updatedConsent = await this.consentService.updateConsent(consentId, { permissions, status });
+      const {  status } = req.body;
+      const updatedConsent = await this.consentAPI.updateConsent(consentId, {  status });
       if (!updatedConsent) {
         res.status(404).json({ error: 'Consent not found' });
       } else {
         res.status(200).json(updatedConsent);
       }
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   }
@@ -88,31 +79,13 @@ export class ConsentController {
   async revokeConsent(req: Request, res: Response): Promise<void> {
     try {
       const consentId = req.params.consent_id;
-      const success = await this.consentService.revokeConsent(consentId);
+      const success = await this.consentAPI.revokeConsent(consentId);
       if (success) {
         res.status(200).json({ message: 'Consent revoked successfully' });
       } else {
         res.status(404).json({ error: 'Consent not found' });
       }
-    } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
-    }
-  }
-
-  /**
-   * Delete a consent record.
-   * Expects the consent ID in the URL parameters as 'consent_id'.
-   */
-  async deleteConsent(req: Request, res: Response): Promise<void> {
-    try {
-      const consentId = req.params.consent_id;
-      const success = await this.consentService.deleteConsent(consentId);
-      if (success) {
-        res.status(204).send();
-      } else {
-        res.status(404).json({ error: 'Consent not found' });
-      }
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   }

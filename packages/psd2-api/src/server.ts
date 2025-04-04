@@ -6,6 +6,13 @@ import { AccountController } from './controllers/account-controller';
 // import { PaymentController } from './controllers/payment-controller';
 import { ConsentController } from './controllers/consent-controller';
 import { TransactionController } from './controllers/transaction-controller';
+import { 
+  verifyToken, 
+  requireRole, 
+  requireScope, 
+  verifyConsent
+} from '@banking-sim/auth-service';
+import { ConsentPermission } from '@banking-sim/common';
 
 export class PSD2Server {
   private app: express.Application;
@@ -26,7 +33,7 @@ export class PSD2Server {
     // Initialize controllers
     this.accountController = new AccountController(bankId);
     // this.paymentController = new PaymentController(bankId);
-    this.consentController = new ConsentController(bankId);
+    this.consentController = new ConsentController();
     this.transactionController = new TransactionController(bankId);
     
     this.configureMiddleware();
@@ -57,9 +64,10 @@ export class PSD2Server {
 
   private configureRoutes(): void {
     // Consent endpoints
-    this.app.post('/api/v1/consent', this.consentController.createConsent.bind(this.consentController));
-    this.app.get('/api/v1/consent/:consent_id', this.consentController.getConsent.bind(this.consentController));
-    this.app.delete('/api/v1/consent/:consent_id', this.consentController.revokeConsent.bind(this.consentController));
+    this.app.post('/api/v1/consent', verifyToken, this.consentController.createConsent.bind(this.consentController));
+    this.app.get('/api/v1/consent/:consent_id', verifyToken, this.consentController.getConsent.bind(this.consentController));
+    this.app.put('/api/v1/consent/:consent_id', verifyToken, this.consentController.updateConsent.bind(this.consentController));
+    this.app.delete('/api/v1/consent/:consent_id',verifyToken,  this.consentController.revokeConsent.bind(this.consentController));
     
     // Payment endpoints
     // this.app.post('/api/v1/payments/domestic', this.paymentController.createDomesticPayment.bind(this.paymentController));
@@ -67,13 +75,33 @@ export class PSD2Server {
     // this.app.post('/api/v1/payments/recurring', this.paymentController.createRecurringPayment.bind(this.paymentController));
     // this.app.get('/api/v1/payments/:payment_id/status', this.paymentController.getPaymentStatus.bind(this.paymentController));
     
-    // Account endpoints
-    this.app.get('/api/v1/accounts', this.accountController.getAccounts.bind(this.accountController));
-    this.app.get('/api/v1/accounts/:account_id', this.accountController.getAccount.bind(this.accountController));
-    this.app.get('/api/v1/accounts/:account_id/balance', this.accountController.getAccountBalance.bind(this.accountController));
+    // Account endpoints - require both authentication and valid customer consent
+    this.app.get(
+      '/api/v1/accounts', 
+      verifyToken,         // authenticate the calling TPP
+      verifyConsent([ConsentPermission.ACCOUNT_DETAILS]),
+      this.accountController.getAccounts.bind(this.accountController)
+    );
+    this.app.get(
+      '/api/v1/accounts/:account_id', 
+      verifyToken,
+      verifyConsent([ConsentPermission.ACCOUNT_DETAILS]),
+      this.accountController.getAccount.bind(this.accountController)
+    );
+    this.app.get(
+      '/api/v1/accounts/:account_id/balance', 
+      verifyToken,
+      verifyConsent([ConsentPermission.ACCOUNT_DETAILS]),
+      this.accountController.getAccountBalance.bind(this.accountController)
+    );
     
-    // Transaction endpoints
-    this.app.get('/api/v1/accounts/:account_id/transactions', this.transactionController.getAccountTransactions.bind(this.transactionController));
+    // Transaction endpoints (also need consent)
+    this.app.get(
+      '/api/v1/accounts/:account_id/transactions', 
+      verifyToken,
+      verifyConsent([ConsentPermission.TRANSACTIONS]),
+      this.transactionController.getAccountTransactions.bind(this.transactionController)
+    );
     
     // Health check endpoint
     this.app.get('/health', (req: Request, res: Response) => {

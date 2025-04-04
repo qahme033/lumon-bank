@@ -222,17 +222,5 @@ export class ConsentService {
     return true;
   }
 
-  /**
-   * Delete a consent record.
-   * @param consentId The unique ID of the consent to delete.
-   * @returns True if deletion was successful, false otherwise.
-   */
-  async deleteConsent(consentId: string): Promise<boolean> {
-    const consent = await this.getConsent(consentId);
-    if (!consent) {
-      return false;
-    }
-    this.db.consents.delete(consentId);
-    return true;
-  }
+ 
 }

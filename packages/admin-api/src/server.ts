@@ -4,7 +4,6 @@ import cors from 'cors';
 import { AdminAccountController } from './controllers/admin-account-controller';
 import { AdminCustomerController } from './controllers/admin-customer-controller';
 import { AdminTransactionController } from './controllers/admin-transaction-controller';
-import { AdminSystemController } from './controllers/admin-system-controller';
 import { AdminDatabaseController } from './controllers/admin-database-controller';
 import { 
   verifyToken, 
@@ -19,20 +18,18 @@ export class AdminServer {
   
   // Controllers
   private accountController: AdminAccountController;
-//   private customerController: AdminCustomerController;
-//   private transactionController: AdminTransactionController;
-//   private systemController: AdminSystemController;
-    private databaseController: AdminDatabaseController
+  private customerController: AdminCustomerController;
+  private transactionController: AdminTransactionController;
+  private databaseController: AdminDatabaseController
   constructor(bankId: string, port: number) {
     this.bankId = bankId;
     this.port = port;
     this.app = express();
     
     // Initialize controllers
-    this.accountController = new AdminAccountController(bankId);
-    // this.customerController = new AdminCustomerController(bankId);
-    // this.transactionController = new AdminTransactionController(bankId);
-    // this.systemController = new AdminSystemController(bankId);
+    this.accountController = new AdminAccountController();
+    this.customerController = new AdminCustomerController();
+    this.transactionController = new AdminTransactionController(bankId);
     this.databaseController = new AdminDatabaseController(bankId);
 
     
@@ -80,11 +77,11 @@ export class AdminServer {
 
   private configureRoutes(): void {
     // Customer management
-    // this.app.post('/admin/api/customers', this.customerController.createCustomer.bind(this.customerController));
-    // this.app.get('/admin/api/customers', this.customerController.getCustomers.bind(this.customerController));
-    // this.app.get('/admin/api/customers/:customerId', this.customerController.getCustomer.bind(this.customerController));
-    // this.app.put('/admin/api/customers/:customerId', this.customerController.updateCustomer.bind(this.customerController));
-    // this.app.delete('/admin/api/customers/:customerId', this.customerController.deleteCustomer.bind(this.customerController));
+    this.app.post('/admin/api/customers', this.customerController.createCustomer.bind(this.customerController));
+    this.app.get('/admin/api/customers', this.customerController.getCustomers.bind(this.customerController));
+    this.app.get('/admin/api/customers/:customerId', this.customerController.getCustomer.bind(this.customerController));
+    this.app.put('/admin/api/customers/:customerId', this.customerController.updateCustomer.bind(this.customerController));
+    this.app.delete('/admin/api/customers/:customerId', this.customerController.deleteCustomer.bind(this.customerController));
     
     // Account management
   // Public health check endpoint (no authentication required)
@@ -165,14 +162,8 @@ export class AdminServer {
 
     
     // Transaction management
-    // this.app.post('/admin/api/transactions', this.transactionController.createTransaction.bind(this.transactionController));
-    // this.app.get('/admin/api/transactions', this.transactionController.getTransactions.bind(this.transactionController));
+    this.app.get('/admin/api/transaction/:transactionId', this.transactionController.getTransaction.bind(this.transactionController));
     
-    // System management
-    // this.app.post('/admin/api/system/reset', this.systemController.resetSystem.bind(this.systemController));
-    // this.app.post('/admin/api/system/seed', this.systemController.seedData.bind(this.systemController));
-    // this.app.get('/admin/api/system/status', this.systemController.getStatus.bind(this.systemController));
-
     this.app.get('/admin/api/database', this.databaseController.getDatabaseSnapshot.bind(this.databaseController));
     this.app.get('/admin/api/database/stats', this.databaseController.getDatabaseStats.bind(this.databaseController));
     
