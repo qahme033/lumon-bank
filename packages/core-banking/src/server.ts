@@ -2,11 +2,11 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { CustomerController } from './controllers/customer-controller';
-import { AccountController } from './controllers/account-controller';
-import { ConsentController } from './controllers/consent-controller';
-import { TransactionController } from './controllers/transaction-controller';
-import { DatabaseController } from './controllers/database-controller';
+import { CustomerController } from './controllers/customer-controller.js';
+import { AccountController } from './controllers/account-controller.js';
+import { ConsentController } from './controllers/consent-controller.js';
+import { TransactionController } from './controllers/transaction-controller.js';
+import { DatabaseController } from './controllers/database-controller.js';
 
 export class CoreBankingServer {
   private app: express.Application;

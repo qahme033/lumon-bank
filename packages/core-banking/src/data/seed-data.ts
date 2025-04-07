@@ -1,8 +1,8 @@
 // packages/core-banking/src/data/seed-data.ts
 import { v4 as uuidv4 } from 'uuid';
-import { IBank, InMemoryDatabase } from './in-memory-db';
+import { IBank, InMemoryDatabase } from './in-memory-db.js';
 import { AccountType, AccountStatus } from '@banking-sim/common';
-import { DatabaseService } from '../services/database-service';
+import { DatabaseService } from '../services/database-service.js';
 
 export function seedBankData(bankId: string): void {
   const db = InMemoryDatabase.getInstance();

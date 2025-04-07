@@ -1,6 +1,6 @@
 // src/controllers/database-controller.ts
 import { Request, Response, NextFunction } from 'express';
-import { DatabaseService } from '../services/database-service'; // Adjust the import path as needed
+import { DatabaseService } from '../services/database-service.js'; // Adjust the import path as needed
 
 export class DatabaseController {
   private databaseService: DatabaseService;

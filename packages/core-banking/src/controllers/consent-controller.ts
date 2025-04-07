@@ -1,7 +1,7 @@
 // src/controllers/consent-controller.ts
 import { Request, Response, NextFunction } from 'express';
-import { ConsentService } from '../services/consent-service'; // Adjust the import path as needed
-import { IConsent } from '../data/in-memory-db';
+import { ConsentService } from '../services/consent-service.js'; // Adjust the import path as needed
+import { IConsent } from '../data/in-memory-db.js';
 
 export class ConsentController {
   private consentService: ConsentService;

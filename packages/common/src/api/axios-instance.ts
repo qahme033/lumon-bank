@@ -1,6 +1,6 @@
 // packages/common/src/api/axios-instance.ts
 import axios, { AxiosInstance } from 'axios';
-import config from '../config';
+import config from '../config/index.js';
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: config.CORE_BANKING_API_URL,

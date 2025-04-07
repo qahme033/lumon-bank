@@ -1,5 +1,5 @@
 // packages/core-banking/src/services/database-service.ts
-import { ConsentStatus, IBank, IConsent, InMemoryDatabase, ITransaction } from '../data/in-memory-db';
+import { ConsentStatus, IBank, IConsent, InMemoryDatabase, ITransaction } from '../data/in-memory-db.js';
 
 export class DatabaseService {
   private db: InMemoryDatabase;

@@ -1,6 +1,6 @@
 // packages/common/src/api/consent.ts
-import { IConsent } from '../types/types';
-import axiosInstance from './axios-instance';
+import { IConsent } from '../types/types.js';
+import axiosInstance from './axios-instance.js';
 
 interface CreateConsentPayload {
   customer_id: string;

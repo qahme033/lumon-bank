@@ -7,9 +7,9 @@ export function getGreeting(name: string): string {
 
 // If you have src/types/index.ts
 // Make sure it exports all your types
-export * from './types/types';
+export * from './types/types.js';
 
-export * from './api/account'
-export * from './api/customer'
-export * from './api/transaction'
-export * from './api/consent'
+export * from './api/account.js'
+export * from './api/customer.js'
+export * from './api/transaction.js'
+export * from './api/consent.js'

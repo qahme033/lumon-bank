@@ -1,6 +1,6 @@
 // packages/common/src/api/transaction.ts
-import axiosInstance from './axios-instance';
-import { ITransaction } from '../types/types';
+import axiosInstance from './axios-instance.js';
+import { ITransaction } from '../types/types.js';
 
 interface CreateTransactionPayload {
   accountId: string;

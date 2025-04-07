@@ -2,14 +2,16 @@
   "name": "@banking-sim/auth-service",
   "version": "0.1.0",
   "main": "dist/index.js",
+  "type": "module",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/server.js"
+"clean": "rimraf ./dist && rimraf tsconfig.tsbuildinfo",
+"build": "tsc -b",
+"start": "node dist/server.js"
   },
   "dependencies": {
     "@banking-sim/common": "^0.1.0",
-
+    "@banking-sim/core-banking": "^0.1.0",
     "bcrypt": "^5.1.0",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0"
@@ -19,5 +21,9 @@
     "@types/express": "^4.17.17",
     "@types/jsonwebtoken": "^9.0.1",
     "typescript": "^5.0.4"
-  }
+  },
+  "references": [
+    { "path": "../common" },
+    { "path": "../core-banking" }
+  ]
 }

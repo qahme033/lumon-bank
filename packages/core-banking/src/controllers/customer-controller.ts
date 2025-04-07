@@ -1,7 +1,7 @@
 // src/controllers/customer-controller.ts
 import { Request, Response, NextFunction } from 'express';
-import { CustomerService } from '../services/customer-service'; // Adjust the import path as needed
-import { ICustomer } from '../data/in-memory-db'; // Adjust as needed
+import { CustomerService } from '../services/customer-service.js'; // Adjust the import path as needed
+import { ICustomer } from '../data/in-memory-db.js'; // Adjust as needed
 
 export class CustomerController {
   private customerService: CustomerService;

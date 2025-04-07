@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ConsentPermission, ConsentStatus, IConsent, InMemoryDatabase } from '../data/in-memory-db';
+import { ConsentPermission, ConsentStatus, IConsent, InMemoryDatabase } from '../data/in-memory-db.js';
 
 /**
  * Your IConsent interface (defined in your in-memory DB file) should now include:

@@ -2,10 +2,10 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { AccountController } from './controllers/account-controller';
+import { AccountController } from './controllers/account-controller.js';
 // import { PaymentController } from './controllers/payment-controller';
-import { ConsentController } from './controllers/consent-controller';
-import { TransactionController } from './controllers/transaction-controller';
+import { ConsentController } from './controllers/consent-controller.js';
+import { TransactionController } from './controllers/transaction-controller.js';
 import { 
   verifyToken, 
   requireRole, 

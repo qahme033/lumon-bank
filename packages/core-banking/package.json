@@ -2,13 +2,15 @@
     "name": "@banking-sim/core-banking",
     "version": "0.1.0",
     "main": "dist/index.js",
+    "type":"module",
     "types": "dist/index.d.ts",
     "scripts": {
-      "clean": "rimraf dist",
-      "build": "npm run clean && tsc -b"
-    },
+"clean": "rimraf ./dist && rimraf tsconfig.tsbuildinfo",
+"build": "tsc -b"
+},
     "dependencies": {
-      "uuid": "^8.3.2"
+      "uuid": "^8.3.2",
+      "@banking-sim/common": "^0.1.0"
     },
     "devDependencies": {
       "@types/uuid": "^8.3.3",

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { InMemoryDatabase, ITransaction } from '../data/in-memory-db';
+import { InMemoryDatabase, ITransaction } from '../data/in-memory-db.js';
 
 export class TransactionService {
   private db: InMemoryDatabase;

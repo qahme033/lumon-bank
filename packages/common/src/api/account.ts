@@ -1,6 +1,6 @@
 // packages/common/src/api/account.ts
-import { AccountStatus, AccountType, IAccount, IBalanceResponse } from '../types/types';
-import axiosInstance from './axios-instance';
+import { AccountStatus, AccountType, IAccount, IBalanceResponse } from '../types/types.js';
+import axiosInstance from './axios-instance.js';
 
 interface CreateAccountPayload {
   customerId: string;

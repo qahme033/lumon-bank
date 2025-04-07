@@ -1,7 +1,7 @@
 // packages/core-banking/src/services/customer-service.ts
 import { v4 as uuidv4 } from 'uuid';
-import { InMemoryDatabase } from '../data/in-memory-db';
-import { ICustomer } from '../data/in-memory-db';
+import { InMemoryDatabase } from '../data/in-memory-db.js';
+import { ICustomer } from '../data/in-memory-db.js';
 
 export class CustomerService {
   private db: InMemoryDatabase;

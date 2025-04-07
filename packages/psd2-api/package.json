@@ -3,13 +3,16 @@
     "version": "0.1.0",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "type": "module",
     "scripts": {
-    "clean": "rimraf dist",
-    "build": "npm run clean && tsc -b",
+"clean": "rimraf ./dist && rimraf tsconfig.tsbuildinfo",
+      "build": "npm run clean && tsc -b",
       "start": "node dist/server.js"
     },
     "dependencies": {
-
+      "@banking-sim/common": "^0.1.0",
+      "@banking-sim/core-banking": "^0.1.0",
+      "@banking-sim/auth-service": "^0.1.0",
       "express": "^4.17.2",
       "cors": "^2.8.5",
       "helmet": "^5.0.1",

@@ -1,7 +1,8 @@
 // packages/core-banking/src/services/account-service.ts
 import { v4 as uuidv4 } from 'uuid';
-import { InMemoryDatabase } from '../data/in-memory-db';
-import { AccountType, AccountStatus, IAccount } from '@banking-sim/common';
+import { InMemoryDatabase } from '../data/in-memory-db.js';
+import { AccountStatus, AccountType, IAccount } from '@banking-sim/common';
+// import { AccountType, AccountStatus, IAccount } from '@banking-sim/common';
 
 export class AccountService {
   private db: InMemoryDatabase;

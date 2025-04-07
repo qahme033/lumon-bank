@@ -1,10 +1,10 @@
 // packages/admin-api/src/server.ts
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import { AdminAccountController } from './controllers/admin-account-controller';
-import { AdminCustomerController } from './controllers/admin-customer-controller';
-import { AdminTransactionController } from './controllers/admin-transaction-controller';
-import { AdminDatabaseController } from './controllers/admin-database-controller';
+import { AdminAccountController } from './controllers/admin-account-controller.js';
+import { AdminCustomerController } from './controllers/admin-customer-controller.js';
+import { AdminTransactionController } from './controllers/admin-transaction-controller.js';
+import { AdminDatabaseController } from './controllers/admin-database-controller.js';
 import { 
   verifyToken, 
   requireRole, 

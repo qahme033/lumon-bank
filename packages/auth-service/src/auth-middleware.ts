@@ -1,7 +1,7 @@
 // packages/auth-service/src/auth-middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { AuthService } from './auth-service';
+import { AuthService } from './auth-service.js';
 import { consentAPI, ConsentPermission, ConsentStatus } from '@banking-sim/common';
 
 // JWT secret (use environment variables in production)

@@ -1,0 +1,34 @@
+{
+    "$schema": "https://turbo.build/schema.json",
+    "tasks": {
+      "build:common": {
+        "cache": true,
+        "outputs": ["packages/common/dist/**"]
+      },
+      "build:core": {
+        "dependsOn": ["^build"],
+        "cache": true,
+        "outputs": ["packages/core-banking/dist/**"]
+      },
+      "build:admin": {
+        "dependsOn": ["^build"],
+        "cache": true,
+        "outputs": ["packages/admin-api/dist/**"]
+      },
+      "build:psd2": {
+        "dependsOn": ["^build"],
+        "cache": true,
+        "outputs": ["packages/psd2-api/dist/**"]
+      },
+      "build:auth": {
+        "dependsOn": ["^build"],
+        "cache": true,
+        "outputs": ["packages/auth-service/dist/**"]
+      },
+      "build": {
+        "dependsOn": ["^build"],
+        "cache": true
+      }
+    }
+  }
+  

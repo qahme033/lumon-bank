@@ -1,7 +1,7 @@
 // src/controllers/transaction-controller.ts
 import { Request, Response, NextFunction } from 'express';
-import { TransactionService } from '../services/transaction-service'; // Adjust the import path as needed
-import { ITransaction } from '../data/in-memory-db';
+import { TransactionService } from '../services/transaction-service.js'; // Adjust the import path as needed
+import { ITransaction } from '../data/in-memory-db.js';
 
 export class TransactionController {
   private transactionService: TransactionService;
