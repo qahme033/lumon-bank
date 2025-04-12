@@ -1,12 +1,11 @@
 {
-  "compilerOptions": {
-    // "target": "ES",
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    "declaration": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    // "outDir": "/dist",
-    // "rootDir": "/src",
-  }
+  "files": [],
+  "include": [],
+  "references": [
+      { "path": "./packages/common" },
+      { "path": "./packages/core-banking" },
+      { "path": "./packages/auth-service" },
+      { "path": "./packages/admin-api" },
+      { "path": "./packages/psd2-api" },          
+  ]
 }
