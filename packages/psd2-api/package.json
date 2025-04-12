@@ -6,7 +6,7 @@
     "type": "module",
     "scripts": {
 "clean": "rimraf ./dist && rimraf tsconfig.tsbuildinfo",
-      "build": "npm run clean && tsc -b",
+      "build": "tsc -b",
       "start": "node dist/server.js"
     },
     "dependencies": {
