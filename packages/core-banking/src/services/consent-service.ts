@@ -1,43 +1,27 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ConsentPermission, ConsentStatus, IConsent, InMemoryDatabase } from '../data/in-memory-db.js';
-
-/**
- * Your IConsent interface (defined in your in-memory DB file) should now include:
- *
- * export interface IConsent {
- *   consent_id: string;
- *   customer_id: string;
- *   bank_id: string;
- *   account_ids: string[];
- *   permissions: string[];
- *   status: string; // e.g., AWAITING_AUTHORIZATION, AUTHORIZED, REVOKED
- *   created_at: Date;
- *   expires_at: Date;
- *   authorization_url: string;
- *   psu_ip_address: string;
- *   psu_user_agent: string;
- *   tpp_id: string;
- * }
- */
+import { ConsentPermission, ConsentStatus, IConsent } from '@banking-sim/common'
+import { DatabaseService } from './database-service.js';
+import { getDatabaseService } from './mongodb-service.js';
+import { ObjectId } from 'mongodb';
 
 export class ConsentService {
-  private db: InMemoryDatabase;
+  private db?: DatabaseService;
   private bankId: string;
 
   constructor(bankId: string) {
-    this.db = InMemoryDatabase.getInstance();
     this.bankId = bankId;
+  }
+
+  // Helper method to get database instance
+  private async getDatabase(): Promise<DatabaseService> {
+    if (!this.db) {
+      this.db = await getDatabaseService();
+    }
+    return this.db;
   }
 
   /**
    * Create a new consent record.
-   * @param customerId The ID of the customer granting consent.
-   * @param accountIds An array of account IDs this consent applies to.
-   * @param permissions A list of permissions (e.g., 'account_details', 'transactions').
-   * @param psuIpAddress IP address of the Payment Service User.
-   * @param psuUserAgent User-Agent string from the PSU's device.
-   * @param tppId Third-Party Provider identifier.
-   * @returns The newly created consent record.
    */
   async createConsent(
     customerId: string,
@@ -47,7 +31,7 @@ export class ConsentService {
     psuUserAgent: string,
     tppId: string
   ): Promise<IConsent> {
-    const db = InMemoryDatabase.getInstance();
+    const db = await this.getDatabase();
   
     // Basic Input Validation
     if (
@@ -64,14 +48,14 @@ export class ConsentService {
     }
   
     // 1. Validate Customer
-    const customer = db.customers.get(customerId);
+    const customer = await db.getCustomer(customerId);
     if (!customer) {
       throw new Error(`Customer with ID ${customerId} does not exist.`);
     }
   
-    // 2. Validate Bank (Assuming consent is tied to a specific bank)
+    // 2. Validate Bank
     const bankId = customer.bankId;
-    const bank = db.banks.get(bankId);
+    const bank = await db.getBank(bankId);
     if (!bank) {
       throw new Error(`Bank with ID ${bankId} does not exist.`);
     }
@@ -85,7 +69,7 @@ export class ConsentService {
     const validatedAccountIds: string[] = [];
   
     for (const accountId of accountIds) {
-      const account = db.accounts.get(accountId);
+      const account = await db.getAccount(accountId);
       if (!account) {
         throw new Error(`Account with ID ${accountId} does not exist.`);
       }
@@ -96,8 +80,8 @@ export class ConsentService {
         );
       }
   
-      // Optionally, check if the account belongs to the customer
-      if (account.customerId !== customerId) { // Assuming IAccount has a customerId field
+      // Check if account belongs to customer
+      if (account.customerId.toString() !== customerId) {
         throw new Error(
           `Account with ID ${accountId} does not belong to customer with ID ${customerId}.`
         );
@@ -114,25 +98,17 @@ export class ConsentService {
       }
     }
   
-    // 5. (Optional) Validate TPP ID
-    // If you have a list or method to validate TPPs, implement it here.
-    // For example:
-    // const tpp = db.tpps.get(tppId);
-    // if (!tpp) {
-    //   throw new Error(`TPP with ID ${tppId} is not authorized.`);
-    // }
-  
-    // All validations passed, create the consent
+    // Create the consent
     const consent_id = uuidv4();
     const created_at = new Date();
     const expires_at = new Date(Date.now() + 86400000); // Consent valid for 24 hours
     const authorization_url = `https://example.com/authorize?consent_id=${consent_id}`;
   
     const consent: IConsent = {
-      consent_id,
-      customer_id: customerId,
+      consent_id: new ObjectId(consent_id),
+      customer_id: new ObjectId(customerId),
       bank_id: bankId,
-      account_ids: validatedAccountIds,
+      account_ids: validatedAccountIds.map(id => new ObjectId(id)),
       permissions,
       status: ConsentStatus.AWAITING_AUTHORIZATION,
       created_at,
@@ -143,20 +119,20 @@ export class ConsentService {
       tpp_id: tppId
     };
   
-    // Store the consent record in the in-memory DB
-    db.consents.set(consent_id, consent);
+    // Store the consent
+    await db.addConsent(consent);
   
     return consent;
   }
 
   /**
    * Retrieve a consent record by its ID.
-   * @param consentId The unique ID of the consent.
-   * @returns The consent record or null if not found or not matching the bank.
    */
   async getConsent(consentId: string): Promise<IConsent | null> {
-    const consent = this.db.consents.get(consentId) as IConsent | undefined;
-    if (consent && consent.bank_id === this.bankId) {
+    const db = await this.getDatabase();
+    const consent = await db.getConsent(consentId);
+    
+    if (consent && consent.bank_id.toString() === this.bankId) {
       return consent;
     }
     return null;
@@ -164,31 +140,28 @@ export class ConsentService {
 
   /**
    * Retrieve all consents for this bank, optionally filtering by customer ID.
-   * @param customerId (Optional) Filter consents for a specific customer.
-   * @returns An array of consent records.
    */
   async getConsents(customerId?: string): Promise<IConsent[]> {
-    const consents: IConsent[] = [];
-    for (const [, consent] of this.db.consents) {
-      const c = consent as IConsent;
-      if (c.bank_id === this.bankId && (!customerId || c.customer_id === customerId)) {
-        consents.push(c);
-      }
+    const db = await this.getDatabase();
+    
+    const query: any = { bank_id: this.bankId };
+    if (customerId) {
+      query.customer_id = customerId;
     }
-    return consents;
+    
+    return db.getConsents(query);
   }
 
   /**
    * Update a consent record.
-   * @param consentId The unique ID of the consent to update.
-   * @param updates Object containing fields to update (e.g., permissions, status).
-   * @returns The updated consent record or null if not found.
    */
   async updateConsent(
     consentId: string,
     updates: { permissions?: ConsentPermission[]; status?: ConsentStatus }
   ): Promise<IConsent | null> {
+    const db = await this.getDatabase();
     const consent = await this.getConsent(consentId);
+    
     if (!consent) {
       return null;
     }
@@ -199,17 +172,17 @@ export class ConsentService {
       status: updates.status || consent.status
     };
 
-    this.db.consents.set(consentId, updatedConsent);
+    await db.updateConsent(updatedConsent);
     return updatedConsent;
   }
 
   /**
    * Revoke a consent by setting its status to 'REVOKED'.
-   * @param consentId The unique ID of the consent to revoke.
-   * @returns True if revocation was successful, false otherwise.
    */
   async revokeConsent(consentId: string): Promise<boolean> {
+    const db = await this.getDatabase();
     const consent = await this.getConsent(consentId);
+    
     if (!consent) {
       return false;
     }
@@ -218,9 +191,8 @@ export class ConsentService {
       ...consent,
       status: ConsentStatus.REVOKED
     };
-    this.db.consents.set(consentId, updatedConsent);
+    
+    await db.updateConsent(updatedConsent);
     return true;
   }
-
- 
 }

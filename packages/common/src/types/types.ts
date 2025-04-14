@@ -1,11 +1,15 @@
+import { ObjectId } from "mongodb";
+
 export interface ICustomer {
-    id: string;
+    id: ObjectId;
     firstName: string;
     lastName: string;
     email: string;
     phone?: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
+    bankId: ObjectId; // Add this field
+
   }
   
 
@@ -20,19 +24,19 @@ export  enum ConsentStatus {
     REVOKED = "REVOKED"
 }
 export interface IBank {
-    id: string;
+    id: ObjectId;
     name: string;
 }
 export interface IConsent {
-    consent_id: string;
-    customer_id: string;
-    account_ids: string[];
+    consent_id: ObjectId;
+    customer_id: ObjectId;
+    account_ids: ObjectId[];
     permissions: ConsentPermission[];
     status: ConsentStatus;
     created_at: Date;
     expires_at: Date;
     authorization_url: string;
-    bank_id: string;
+    bank_id: ObjectId;
     psu_ip_address: string;
     psu_user_agent: string;
     tpp_id: string;
@@ -40,8 +44,8 @@ export interface IConsent {
 
 
 export interface ITransaction {
-    id: string;
-    accountId: string;
+    id: ObjectId;
+    accountId: ObjectId;
     amount: number;
     description: string;
     type: 'CREDIT' | 'DEBIT';
@@ -65,25 +69,28 @@ export enum AccountType {
   }
   
   export interface IAccount {
-    id: string;
-    customerId: string;
-    bankId: string;
+    id: ObjectId;
+    customerId: ObjectId;
+    bankId: ObjectId;
     accountType: AccountType;
     accountName: string;
     currency: string;
     status: AccountStatus;
     departmentCode: string;
     createdAt: Date;
+    updatedAt: Date;         
   }
   
   export interface IBalance {
+    id: ObjectId;
+    // account_id: ObjectId;
     available: number;
     current: number;
     pending: number;
   }
 
   export interface IBalanceResponse {
-    account_id: string;
+    account_id: ObjectId;
     balances: {
       balance_type: string;
       amount: number;

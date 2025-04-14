@@ -1,8 +1,9 @@
 // packages/auth-service/src
 import express, { Request, Response } from 'express';
 import { AuthService } from './auth-service.js';
-import { ConsentStatus, IConsent, ConsentService } from '@banking-sim/core-banking';
+import {  ConsentService } from '@banking-sim/core-banking';
 import { renderAuthorizationPage, renderAuthorizationResult } from './authorization.js';
+import { ConsentStatus, IConsent } from '@banking-sim/common';
 
 export class AuthServer {
   private app: express.Application;

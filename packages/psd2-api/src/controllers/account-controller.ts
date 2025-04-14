@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { AccountService, ConsentPermission } from '@banking-sim/core-banking';
-import { ConsentService } from '@banking-sim/core-banking'; // adjust path as needed
+import { AccountService, ConsentService } from '@banking-sim/core-banking';
+import { ConsentPermission } from '@banking-sim/common';
 
 export class AccountController {
   private bankId: string;
@@ -40,7 +40,7 @@ export class AccountController {
       return { valid: false, message: 'Consent does not include account details permission' };
     }
 
-    if (consent.customer_id !== customerId) {
+    if (consent.customer_id.toString() !== customerId) {
       return { valid: false, message: 'Consent does not match the customer' };
     }
 

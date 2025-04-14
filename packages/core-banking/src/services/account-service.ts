@@ -1,16 +1,23 @@
-// packages/core-banking/src/services/account-service.ts
 import { v4 as uuidv4 } from 'uuid';
-import { InMemoryDatabase } from '../data/in-memory-db.js';
-import { AccountStatus, AccountType, IAccount } from '@banking-sim/common';
-// import { AccountType, AccountStatus, IAccount } from '@banking-sim/common';
+import { AccountStatus, AccountType, IAccount, IBalance } from '@banking-sim/common';
+import { DatabaseService } from './database-service.js';
+import { getDatabaseService } from './mongodb-service.js';
+import { ObjectId } from 'mongodb';
 
 export class AccountService {
-  private db: InMemoryDatabase;
   private bankId: string;
+  private db?: DatabaseService;
 
   constructor(bankId: string) {
-    this.db = InMemoryDatabase.getInstance();
     this.bankId = bankId;
+  }
+
+  // Helper method to get database instance
+  private async getDatabase(): Promise<DatabaseService> {
+    if (!this.db) {
+      this.db = await getDatabaseService();
+    }
+    return this.db;
   }
 
   async createAccount(
@@ -21,68 +28,80 @@ export class AccountService {
     initialBalance: number = 0,
     status: AccountStatus = AccountStatus.ACTIVE
   ): Promise<IAccount> {
+    const db = await this.getDatabase();
+    
     // Verify the customer exists
-    const customer = this.db.customers.get(customerId);
-    if (!customer || customer.bankId !== this.bankId) {
+    const customer = await db.getCustomer(customerId);
+    if (!customer) {
       throw new Error('Customer not found');
     }
-    
+    const accountOId = new ObjectId(uuidv4());
+    const bankOId = new ObjectId(this.bankId);
+    const customerOId = new ObjectId(customerId);
     // Create the account
     const account: IAccount = {
-      id: uuidv4(),
-      customerId,
-      bankId: this.bankId,
+      id: accountOId,
+      customerId: customerOId,
+      bankId: bankOId,
       accountType,
       accountName,
       currency,
       status,
       departmentCode: 'MDR',
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     
     // Store the account
-    this.db.accounts.set(account.id, account);
+    await db.addAccount(account);
     
     // Initialize balance
-    this.db.balances.set(account.id, {
+    const balance: IBalance = {
+      id: new ObjectId(uuidv4()),
       available: initialBalance,
       current: initialBalance,
       pending: 0
-    });
+    };
     
-    // Initialize empty transaction list
-    this.db.transactions.set(account.id, []);
+    await db.setBalance(account.id.toString(), balance);
     
     return account;
   }
 
   async getAccounts(customerId: string): Promise<IAccount[]> {
-    const accounts: IAccount[] = [];
+    const db = await this.getDatabase();
     
-    for (const [_, account] of this.db.accounts) {
-      if (account.customerId === customerId && account.bankId === this.bankId) {
-        accounts.push(account);
-      }
-    }
-    
-    return accounts;
+    // Get accounts matching both customerId and bankId
+    const accounts = await db.getAccountsByCustomer(customerId);
+    return accounts.filter(account => account.bankId.toString() === this.bankId);
   }
 
   async getAccount(accountId: string): Promise<IAccount | null> {
-    const account = this.db.accounts.get(accountId);
-    if (account && account.bankId === this.bankId) {
+    const db = await this.getDatabase();
+    
+    // Get the specific account
+    const account = await db.getAccount(accountId);
+    
+    // Verify it belongs to this bank
+    if (account && account.bankId.toString() === this.bankId) {
       return account;
     }
+    
     return null;
   }
 
   async getAccountBalance(accountId: string): Promise<any | null> {
+    const db = await this.getDatabase();
+    
+    // First check if the account exists
     const account = await this.getAccount(accountId);
     if (!account) return null;
     
-    const balance = this.db.balances.get(accountId);
+    // Get the balance
+    const balance = await db.getBalance(accountId);
     if (!balance) return null;
     
+    // Format the balance in the expected structure
     return {
       account_id: accountId,
       balances: [
@@ -105,4 +124,7 @@ export class AccountService {
       timestamp: new Date().toISOString()
     };
   }
+  
+  // Additional helper methods could be added here as needed
+  // For example, methods to update account status, update balances, etc.
 }

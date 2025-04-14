@@ -1,13 +1,23 @@
 import { v4 as uuidv4 } from 'uuid';
-import { InMemoryDatabase, ITransaction } from '../data/in-memory-db.js';
+import { ITransaction } from '@banking-sim/common';
+import { DatabaseService } from './database-service.js';
+import { getDatabaseService } from './mongodb-service.js';
+import { ObjectId } from 'mongodb';
 
 export class TransactionService {
-  private db: InMemoryDatabase;
+  private db?: DatabaseService;
   private bankId: string;
 
   constructor(bankId: string) {
-    this.db = InMemoryDatabase.getInstance();
     this.bankId = bankId;
+  }
+
+  // Helper method to get database instance
+  private async getDatabase(): Promise<DatabaseService> {
+    if (!this.db) {
+      this.db = await getDatabaseService();
+    }
+    return this.db;
   }
 
   /**
@@ -27,15 +37,17 @@ export class TransactionService {
     type: 'CREDIT' | 'DEBIT',
     status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED' = 'PENDING'
   ): Promise<ITransaction> {
+    const db = await this.getDatabase();
+    
     // Verify the account exists and belongs to the current bank.
-    const account = this.db.accounts.get(accountId);
-    if (!account || account.bankId !== this.bankId) {
+    const account = await db.getAccount(accountId);
+    if (!account || account.bankId.toJSON() !== this.bankId) {
       throw new Error('Account not found or does not belong to the current bank');
     }
 
     const transaction: ITransaction = {
-      id: uuidv4(),
-      accountId,
+      id: new ObjectId(uuidv4()),
+      accountId:new ObjectId(accountId),
       amount,
       description,
       type,
@@ -43,12 +55,8 @@ export class TransactionService {
       timestamp: new Date()
     };
 
-    // Ensure a transaction list exists for the account.
-    if (!this.db.transactions.has(accountId)) {
-      this.db.transactions.set(accountId, []);
-    }
-    const transactions = this.db.transactions.get(accountId);
-    transactions!.push(transaction);
+    // Store the transaction
+    await db.addTransaction(transaction);
 
     return transaction;
   }
@@ -61,21 +69,23 @@ export class TransactionService {
    * @throws An error if the transaction is not found or does not belong to the current bank.
    */
   async getTransaction(transactionId: string): Promise<ITransaction> {
-    // Iterate over each account's transaction list.
-    for (const [accountId, txList] of this.db.transactions.entries()) {
-      for (const transaction of txList) {
-        if (transaction.id === transactionId) {
-          // Verify that the transaction's account belongs to the current bank.
-          const account = this.db.accounts.get(accountId);
-          if (account && account.bankId === this.bankId) {
-            return transaction;
-          } else {
-            throw new Error(`Transaction with ID ${transactionId} does not belong to bank ${this.bankId}.`);
-          }
-        }
-      }
+    const db = await this.getDatabase();
+    
+    // Get the transaction by ID
+    const transaction = await db.getTransaction(transactionId);
+    
+    if (!transaction) {
+      throw new Error(`Transaction with ID ${transactionId} not found.`);
     }
-    throw new Error(`Transaction with ID ${transactionId} not found.`);
+    
+    // Verify that the transaction's account belongs to the current bank
+    const account = await db.getAccount(transaction.accountId.toString());
+    
+    if (!account || account.bankId.toString() !== this.bankId) {
+      throw new Error(`Transaction with ID ${transactionId} does not belong to bank ${this.bankId}.`);
+    }
+    
+    return transaction;
   }
 
   /**
@@ -86,11 +96,16 @@ export class TransactionService {
    * @throws An error if the account is not found or does not belong to the current bank.
    */
   async getTransactionsForAccount(accountId: string): Promise<ITransaction[]> {
+    const db = await this.getDatabase();
+    
     // Verify the account exists and belongs to the current bank.
-    const account = this.db.accounts.get(accountId);
-    if (!account || account.bankId !== this.bankId) {
+    const account = await db.getAccount(accountId);
+    if (!account || account.bankId.toString() !== this.bankId) {
       throw new Error('Account not found or does not belong to the current bank');
     }
-    return this.db.transactions.get(accountId) || [];
+    
+    // Get transactions for the account
+    const transactions = await db.getTransactionsByAccount(accountId);
+    return transactions;
   }
 }

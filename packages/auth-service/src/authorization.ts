@@ -1,7 +1,7 @@
 // packages/core-banking/src/views/authorization.ts
 
 import { Response } from 'express';
-import { IConsent, ConsentStatus } from '@banking-sim/core-banking';
+import { IConsent, ConsentStatus } from '@banking-sim/common';
 
 /**
  * Render a simple authorization result page.

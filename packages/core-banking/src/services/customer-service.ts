@@ -1,15 +1,23 @@
-// packages/core-banking/src/services/customer-service.ts
 import { v4 as uuidv4 } from 'uuid';
-import { InMemoryDatabase } from '../data/in-memory-db.js';
-import { ICustomer } from '../data/in-memory-db.js';
+import { DatabaseService } from './database-service.js';
+import { getDatabaseService } from './mongodb-service.js';
+import { ICustomer } from '@banking-sim/common';
+import { ObjectId } from 'mongodb';
 
 export class CustomerService {
-  private db: InMemoryDatabase;
+  private db?: DatabaseService;
   private bankId: string;
 
   constructor(bankId: string) {
-    this.db = InMemoryDatabase.getInstance();
     this.bankId = bankId;
+  }
+
+  // Helper method to get database instance
+  private async getDatabase(): Promise<DatabaseService> {
+    if (!this.db) {
+      this.db = await getDatabaseService();
+    }
+    return this.db;
   }
 
   /**
@@ -21,30 +29,38 @@ export class CustomerService {
     email: string,
     phone?: string
   ): Promise<ICustomer> {
+    const db = await this.getDatabase();
+
     // Validate inputs
     if (!firstName || !lastName || !email) {
       throw new Error('First name, last name, and email are required');
     }
     
     // Check if customer with the same email already exists
-    for (const [_, customer] of this.db.customers) {
-      if (customer.email === email && customer.bankId === this.bankId) {
-        throw new Error(`Customer with email ${email} already exists`);
-      }
-    }
+    const existingCustomers = await db.getCustomers(this.bankId);
+    const customerWithEmail = existingCustomers.find(c => c.email === email);
     
-    // Create the customer
-    const customer: ICustomer = {
-      id: uuidv4(),
-      firstName,
-      lastName,
-      email,
-      phone,
-      bankId: this.bankId
-    };
+    if (customerWithEmail) {
+      throw new Error(`Customer with email ${email} already exists`);
+    }
+    const stringId = uuidv4();
+    const id = new ObjectId(stringId);
+    const bankOId = new ObjectId(this.bankId);
+  // Create the customer
+  const customer: ICustomer = {
+    id,
+    firstName,
+    lastName,
+    email,
+    phone,
+    bankId: bankOId,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  
     
     // Store the customer
-    this.db.customers.set(customer.id, customer);
+    await db.addCustomer(customer);
     
     return customer;
   }
@@ -53,8 +69,10 @@ export class CustomerService {
    * Get a customer by ID
    */
   async getCustomer(customerId: string): Promise<ICustomer | null> {
-    const customer = this.db.customers.get(customerId);
-    if (customer && customer.bankId === this.bankId) {
+    const db = await this.getDatabase();
+    const customer = await db.getCustomer(customerId);
+    
+    if (customer && customer.bankId.toString() === this.bankId) {
       return customer;
     }
     return null;
@@ -64,14 +82,8 @@ export class CustomerService {
    * Get all customers for this bank
    */
   async getCustomers(): Promise<ICustomer[]> {
-    const customers: ICustomer[] = [];
-    
-    for (const [_, customer] of this.db.customers) {
-      if (customer.bankId === this.bankId) {
-        customers.push(customer);
-      }
-    }
-    
+    const db = await this.getDatabase();
+    const customers = await db.getCustomers(this.bankId);
     return customers;
   }
 
@@ -87,21 +99,22 @@ export class CustomerService {
       phone?: string;
     }
   ): Promise<ICustomer | null> {
+    const db = await this.getDatabase();
     const customer = await this.getCustomer(customerId);
+    
     if (!customer) {
       return null;
     }
     
     // If updating email, check if it's already in use
     if (updates.email && updates.email !== customer.email) {
-      for (const [_, existingCustomer] of this.db.customers) {
-        if (
-          existingCustomer.email === updates.email && 
-          existingCustomer.bankId === this.bankId &&
-          existingCustomer.id !== customerId
-        ) {
-          throw new Error(`Email ${updates.email} is already in use`);
-        }
+      const customers = await db.getCustomers(this.bankId);
+      const emailInUse = customers.some(c => 
+        c.email === updates.email && c.id.toString() !== customerId
+      );
+      
+      if (emailInUse) {
+        throw new Error(`Email ${updates.email} is already in use`);
       }
     }
     
@@ -115,7 +128,7 @@ export class CustomerService {
     };
     
     // Store the updated customer
-    this.db.customers.set(customerId, updatedCustomer);
+    await db.updateCustomer(updatedCustomer);
     
     return updatedCustomer;
   }
@@ -124,20 +137,22 @@ export class CustomerService {
    * Delete a customer
    */
   async deleteCustomer(customerId: string): Promise<boolean> {
+    const db = await this.getDatabase();
     const customer = await this.getCustomer(customerId);
+    
     if (!customer) {
       return false;
     }
     
     // Check if customer has any accounts
-    for (const [_, account] of this.db.accounts) {
-      if (account.customerId === customerId) {
-        throw new Error('Cannot delete customer with active accounts');
-      }
+    const accounts = await db.getAccountsByCustomer(customerId);
+    
+    if (accounts.length > 0) {
+      throw new Error('Cannot delete customer with active accounts');
     }
     
     // Delete the customer
-    this.db.customers.delete(customerId);
+    await db.deleteCustomer(customerId);
     
     return true;
   }
@@ -146,14 +161,12 @@ export class CustomerService {
    * Get customer accounts
    */
   async getCustomerAccounts(customerId: string): Promise<string[]> {
-    const accountIds: string[] = [];
+    const db = await this.getDatabase();
+    const accounts = await db.getAccountsByCustomer(customerId);
     
-    for (const [id, account] of this.db.accounts) {
-      if (account.customerId === customerId && account.bankId === this.bankId) {
-        accountIds.push(id);
-      }
-    }
-    
-    return accountIds;
+    // Filter accounts by bank ID and return account IDs
+    return accounts
+      .filter(account => account.bankId.toString() === this.bankId)
+      .map(account => account.id.toString());
   }
 }

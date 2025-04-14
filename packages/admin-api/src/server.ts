@@ -151,13 +151,13 @@ export class AdminServer {
     this.databaseController.getDatabaseSnapshot.bind(this.databaseController)
   );
   
-  this.app.get(
-    '/admin/api/database/stats', 
-    verifyToken,
-    requireRole('admin'),
-    requireScope('admin:read'),
-    this.databaseController.getDatabaseStats.bind(this.databaseController)
-  );
+  // this.app.get(
+  //   '/admin/api/database/stats', 
+  //   verifyToken,
+  //   requireRole('admin'),
+  //   requireScope('admin:read'),
+  //   this.databaseController.getDatabaseStats.bind(this.databaseController)
+  // );
   
 
     
@@ -165,7 +165,7 @@ export class AdminServer {
     this.app.get('/admin/api/transaction/:transactionId', this.transactionController.getTransaction.bind(this.transactionController));
     
     this.app.get('/admin/api/database', this.databaseController.getDatabaseSnapshot.bind(this.databaseController));
-    this.app.get('/admin/api/database/stats', this.databaseController.getDatabaseStats.bind(this.databaseController));
+    // this.app.get('/admin/api/database/stats', this.databaseController.getDatabaseStats.bind(this.databaseController));
     
     // Health check endpoint
     this.app.get('/admin/health', (req: Request, res: Response) => {

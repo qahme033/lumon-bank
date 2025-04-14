@@ -1,6 +1,11 @@
 {
+  "extends": "./tsconfig-base.json",
   "files": [],
-  "include": [],
+  "compilerOptions": {
+    "outDir": ".vercel/output/functions",
+    "declaration": false
+  },
+  "include": ["api/**/*"],
   "references": [
       { "path": "./packages/common" },
       { "path": "./packages/core-banking" },

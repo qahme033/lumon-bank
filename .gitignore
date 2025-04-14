@@ -5,3 +5,4 @@ dist/
 **/tsconfig.tsbuildinfo
 
 packages/psd2-api/tsconfig.tsbuildinfo
+.vercel

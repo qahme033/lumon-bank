@@ -86,7 +86,7 @@ export class CoreBankingServer {
 
     // Database endpoints
     this.app.get('/api/v1/database/snapshot', this.databaseController.getDatabaseSnapshot.bind(this.databaseController));
-    this.app.get('/api/v1/database/stats', this.databaseController.getStats.bind(this.databaseController));
+    // this.app.get('/api/v1/database/stats', this.databaseController.getStats.bind(this.databaseController));
 
     // Health check endpoint
     this.app.get('/health', (req: Request, res: Response) => {

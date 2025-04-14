@@ -1,7 +1,7 @@
 // src/controllers/customer-controller.ts
 import { Request, Response, NextFunction } from 'express';
 import { CustomerService } from '../services/customer-service.js'; // Adjust the import path as needed
-import { ICustomer } from '../data/in-memory-db.js'; // Adjust as needed
+import { ICustomer } from '@banking-sim/common';
 
 export class CustomerController {
   private customerService: CustomerService;

@@ -24,8 +24,10 @@
     "@banking-sim/psd2-api": "^0.1.0",
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
+    "find-my-way": "^9.3.0",
     "learna": "^1.0.1",
     "minimist": "^1.2.8",
+    "mongodb": "^6.15.0",
     "passport": "^0.7.0",
     "ts-node": "^10.9.2"
   },
