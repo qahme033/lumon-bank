@@ -16,7 +16,7 @@ export function createAdminHandler(bankId: string = 'default-bank-id') {
   // Get controller instances from our server
   const accountController = adminServer['accountController'];
   const customerController = adminServer['customerController'];
-  const transactionController = adminServer['transactionController'];
+  // const transactionController = adminServer['transactionController'];
   const databaseController = adminServer['databaseController'];
   
   // Return a handler function that processes incoming requests
@@ -53,7 +53,7 @@ export function createAdminHandler(bankId: string = 'default-bank-id') {
       }
       
       // For API routes, verify authentication and roles
-      if (path.startsWith('/admin/api')) {
+      if (path.startsWith('/admin')) {
         // Create a promise-based middleware handler
         const runMiddleware = (middleware: any) => {
           return new Promise((resolve, reject) => {
@@ -108,10 +108,10 @@ export function createAdminHandler(bankId: string = 'default-bank-id') {
       // Route the request to the appropriate controller method
       
       // Customer endpoints
-      if (path.startsWith('/admin/api/customers')) {
-        if (path === '/admin/api/customers' && req.method === 'POST') {
+      if (path.startsWith('/admin/customers')) {
+        if (path === '/admin/customers' && req.method === 'POST') {
           return customerController.createCustomer(req, res);
-        } else if (path === '/admin/api/customers' && req.method === 'GET') {
+        } else if (path === '/admin/customers' && req.method === 'GET') {
           return customerController.getCustomers(req, res);
         } else if (path.match(/\/admin\/api\/customers\/[^\/]+$/) && req.method === 'GET') {
           return customerController.getCustomer(req, res);
@@ -123,35 +123,38 @@ export function createAdminHandler(bankId: string = 'default-bank-id') {
       }
       
       // Account endpoints
-      else if (path.startsWith('/admin/api/accounts')) {
-        if (path === '/admin/api/accounts' && req.method === 'POST') {
+      else if (path.startsWith('/admin/accounts')) {
+        if (path === '/admin/accounts' && req.method === 'POST') {
           return accountController.createAccount(req, res);
-        } else if (path === '/admin/api/accounts' && req.method === 'GET') {
+        } else if (path === '/admin/accounts' && req.method === 'GET') {
           return accountController.getAccounts(req, res);
         } else if (path.match(/\/admin\/api\/accounts\/[^\/]+$/) && req.method === 'GET') {
           return accountController.getAccount(req, res);
-        } else if (path.match(/\/admin\/api\/accounts\/[^\/]+$/) && req.method === 'PUT') {
-          return accountController.updateAccount(req, res);
-        } else if (path.match(/\/admin\/api\/accounts\/[^\/]+$/) && req.method === 'DELETE') {
-          return accountController.deleteAccount(req, res);
-        } else if (path.match(/\/admin\/api\/accounts\/[^\/]+\/balance$/) && req.method === 'POST') {
-          return accountController.updateBalance(req, res);
-        }
+        } 
+        // else if (path.match(/\/admin\/api\/accounts\/[^\/]+$/) && req.method === 'PUT') {
+        //   return accountController.updateAccount(req, res);
+        // } 
+        // else if (path.match(/\/admin\/api\/accounts\/[^\/]+$/) && req.method === 'DELETE') {
+        //   return accountController.deleteAccount(req, res);
+        // } 
+        // else if (path.match(/\/admin\/api\/accounts\/[^\/]+\/balance$/) && req.method === 'POST') {
+        //   return accountController.updateBalance(req, res);
+        // }
       }
       
       // Transaction endpoints
-      else if (path.startsWith('/admin/api/transaction')) {
-        if (path.match(/\/admin\/api\/transaction\/[^\/]+$/) && req.method === 'GET') {
-          return transactionController.getTransaction(req, res);
-        }
-      }
+      // else if (path.startsWith('/admin/transaction')) {
+      //   if (path.match(/\/admin\/api\/transaction\/[^\/]+$/) && req.method === 'GET') {
+      //     return transactionController.getTransaction(req, res);
+      //   }
+      // }
       
       // Database endpoints
-      else if (path.startsWith('/admin/api/database')) {
-        if (path === '/admin/api/database' && req.method === 'GET') {
+      else if (path.startsWith('/admin/database')) {
+        if (req.method === 'GET') {
           return databaseController.getDatabaseSnapshot(req, res);
         } 
-        // else if (path === '/admin/api/database/stats' && req.method === 'GET') {
+        // else if (path === '/admin/database/stats' && req.method === 'GET') {
         //   return databaseController.getDatabaseStats(req, res);
         // }
       }

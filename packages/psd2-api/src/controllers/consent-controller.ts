@@ -1,37 +1,68 @@
 // packages/admin-api/src/controllers/consent-controller.ts
 import { Request, Response } from 'express';
-import { consentAPI } from '@banking-sim/common';
+import { CoreBankingClient, Consent } from '@banking-sim/core-banking-client';
 
 export class ConsentController {
-  private consentAPI = consentAPI;
+  private client: CoreBankingClient;
+
+  /**
+   * Initialize the consent controller with a core banking client.
+   * @param bankId The bank ID for this controller
+   * @param apiBaseUrl Optional base URL for the core banking API
+   */
+  constructor(bankId: string, apiBaseUrl?: string) {
+    this.client = new CoreBankingClient(bankId);
+  }
 
   /**
    * Create a new consent record.
    * Expects the request body to include:
-   * - customer_id: string
-   * - account_ids: string[]
+   * - customerId: string
+   * - accountIds: string[]
    * - permissions: string[]
-   * - psu_ip_address: string
-   * - psu_user_agent: string
-   * - tpp_id: string
+   * - psuIpAddress: string
+   * - psuUserAgent: string
+   * - tppId: string
    */
   async createConsent(req: Request, res: Response): Promise<void> {
     try {
-      const { customer_id, account_ids, permissions, psu_ip_address, psu_user_agent, tpp_id } = req.body;
+      const { customerId, accountIds, permissions, psuIpAddress, psuUserAgent, tppId } = req.body;
       
-      if (!customer_id || !psu_ip_address || !psu_user_agent || !tpp_id) {
+      if (!customerId || !psuIpAddress || !psuUserAgent || !tppId) {
         res.status(400).json({ 
-          error: 'Missing required fields',
-          message: 'customer_id, psu_ip_address, psu_user_agent, and tpp_id are required'
+          success: false,
+          error: 'Bad Request',
+          message: 'customerId, psuIpAddress, psuUserAgent, and tppId are required'
         });
         return;
       }
       
-      const payload = { customer_id, account_ids, permissions, psu_ip_address, psu_user_agent, tpp_id };
-      const consent = await this.consentAPI.createConsent(payload);
-      res.status(201).json(consent);
+      const consentData: Partial<Consent> = { 
+        customerId, 
+        accountIds, 
+        permissions, 
+        psuIpAddress, 
+        psuUserAgent, 
+        tppId 
+      };
+      
+      const consent = await this.client.createConsent(consentData);
+      
+      res.status(201).json({
+        success: true,
+        data: consent
+      });
     } catch (error: any) {
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      console.error(`Error in createConsent: ${error.message}`);
+      
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage
+      });
     }
   }
 
@@ -42,14 +73,42 @@ export class ConsentController {
   async getConsent(req: Request, res: Response): Promise<void> {
     try {
       const consentId = req.params.consent_id;
-      const consent = await this.consentAPI.getConsent(consentId);
-      if (!consent) {
-        res.status(404).json({ error: 'Consent not found' });
-      } else {
-        res.status(200).json(consent);
+      
+      if (!consentId) {
+        res.status(400).json({
+          success: false,
+          error: 'Bad Request',
+          message: 'consent_id is required'
+        });
+        return;
       }
+      
+      const consent = await this.client.getConsent(consentId);
+      
+      if (!consent) {
+        res.status(404).json({
+          success: false,
+          error: 'Not Found',
+          message: 'Consent not found'
+        });
+        return;
+      }
+      
+      res.status(200).json({
+        success: true,
+        data: consent
+      });
     } catch (error: any) {
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      console.error(`Error in getConsent: ${error.message}`);
+      
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage
+      });
     }
   }
 
@@ -60,15 +119,44 @@ export class ConsentController {
   async updateConsent(req: Request, res: Response): Promise<void> {
     try {
       const consentId = req.params.consent_id;
-      const {  status } = req.body;
-      const updatedConsent = await this.consentAPI.updateConsent(consentId, {  status });
-      if (!updatedConsent) {
-        res.status(404).json({ error: 'Consent not found' });
-      } else {
-        res.status(200).json(updatedConsent);
+      const { status } = req.body;
+      
+      if (!consentId) {
+        res.status(400).json({
+          success: false,
+          error: 'Bad Request',
+          message: 'consent_id is required'
+        });
+        return;
       }
+      
+      const updatedConsent = await this.client.updateConsent(consentId, { status });
+      
+      res.status(200).json({
+        success: true,
+        data: updatedConsent
+      });
     } catch (error: any) {
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      console.error(`Error in updateConsent: ${error.message}`);
+      
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      // Handle specific 404 error from the client
+      if (error.response?.status === 404) {
+        res.status(404).json({
+          success: false,
+          error: 'Not Found',
+          message: 'Consent not found'
+        });
+        return;
+      }
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage
+      });
     }
   }
 
@@ -79,14 +167,44 @@ export class ConsentController {
   async revokeConsent(req: Request, res: Response): Promise<void> {
     try {
       const consentId = req.params.consent_id;
-      const success = await this.consentAPI.revokeConsent(consentId);
-      if (success) {
-        res.status(200).json({ message: 'Consent revoked successfully' });
-      } else {
-        res.status(404).json({ error: 'Consent not found' });
+      
+      if (!consentId) {
+        res.status(400).json({
+          success: false,
+          error: 'Bad Request',
+          message: 'consent_id is required'
+        });
+        return;
       }
+      
+      const revokedConsent = await this.client.revokeConsent(consentId);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Consent revoked successfully',
+        data: revokedConsent
+      });
     } catch (error: any) {
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      console.error(`Error in revokeConsent: ${error.message}`);
+      
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      // Handle specific 404 error from the client
+      if (error.response?.status === 404) {
+        res.status(404).json({
+          success: false,
+          error: 'Not Found',
+          message: 'Consent not found'
+        });
+        return;
+      }
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage
+      });
     }
   }
 }

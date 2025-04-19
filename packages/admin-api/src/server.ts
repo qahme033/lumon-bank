@@ -3,7 +3,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { AdminAccountController } from './controllers/admin-account-controller.js';
 import { AdminCustomerController } from './controllers/admin-customer-controller.js';
-import { AdminTransactionController } from './controllers/admin-transaction-controller.js';
+// import { AdminTransactionController } from './controllers/admin-transaction-controller.js';
 import { AdminDatabaseController } from './controllers/admin-database-controller.js';
 import { 
   verifyToken, 
@@ -19,7 +19,7 @@ export class AdminServer {
   // Controllers
   private accountController: AdminAccountController;
   private customerController: AdminCustomerController;
-  private transactionController: AdminTransactionController;
+  // private transactionController: AdminTransactionController;
   private databaseController: AdminDatabaseController
   constructor(bankId: string, port: number) {
     this.bankId = bankId;
@@ -27,9 +27,9 @@ export class AdminServer {
     this.app = express();
     
     // Initialize controllers
-    this.accountController = new AdminAccountController();
-    this.customerController = new AdminCustomerController();
-    this.transactionController = new AdminTransactionController(bankId);
+    this.accountController = new AdminAccountController(this.bankId);
+    this.customerController = new AdminCustomerController(this.bankId);
+    // this.transactionController = new AdminTransactionController(bankId);
     this.databaseController = new AdminDatabaseController(bankId);
 
     
@@ -118,29 +118,29 @@ export class AdminServer {
     this.accountController.getAccount.bind(this.accountController)
   );
   
-  this.app.put(
-    '/admin/api/accounts/:accountId', 
-    verifyToken,
-    requireRole('admin'),
-    requireScope('admin:write'),
-    this.accountController.updateAccount.bind(this.accountController)
-  );
+  // this.app.put(
+  //   '/admin/api/accounts/:accountId', 
+  //   verifyToken,
+  //   requireRole('admin'),
+  //   requireScope('admin:write'),
+  //   this.accountController.updateAccount.bind(this.accountController)
+  // );
   
-  this.app.delete(
-    '/admin/api/accounts/:accountId', 
-    verifyToken,
-    requireRole('admin'),
-    requireScope('admin:write'),
-    this.accountController.deleteAccount.bind(this.accountController)
-  );
+  // this.app.delete(
+  //   '/admin/api/accounts/:accountId', 
+  //   verifyToken,
+  //   requireRole('admin'),
+  //   requireScope('admin:write'),
+  //   this.accountController.deleteAccount.bind(this.accountController)
+  // );
   
-  this.app.post(
-    '/admin/api/accounts/:accountId/balance', 
-    verifyToken,
-    requireRole('admin'),
-    requireScope('admin:write'),
-    this.accountController.updateBalance.bind(this.accountController)
-  );
+  // this.app.post(
+  //   '/admin/api/accounts/:accountId/balance', 
+  //   verifyToken,
+  //   requireRole('admin'),
+  //   requireScope('admin:write'),
+  //   this.accountController.updateBalance.bind(this.accountController)
+  // );
   
   // Database inspection (protected routes)
   this.app.get(
@@ -162,7 +162,7 @@ export class AdminServer {
 
     
     // Transaction management
-    this.app.get('/admin/api/transaction/:transactionId', this.transactionController.getTransaction.bind(this.transactionController));
+    // this.app.get('/admin/api/transaction/:transactionId', this.transactionController.getTransaction.bind(this.transactionController));
     
     this.app.get('/admin/api/database', this.databaseController.getDatabaseSnapshot.bind(this.databaseController));
     // this.app.get('/admin/api/database/stats', this.databaseController.getDatabaseStats.bind(this.databaseController));

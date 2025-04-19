@@ -10,8 +10,7 @@
       "start": "node dist/server.js"
     },
     "dependencies": {
-      "@banking-sim/common": "^0.1.0",
-      "@banking-sim/core-banking": "^0.1.0",
+      "@banking-sim/core-banking-client": "^0.1.0",
       "@banking-sim/auth-service": "^0.1.0",
       "express": "^4.17.2",
       "cors": "^2.8.5",

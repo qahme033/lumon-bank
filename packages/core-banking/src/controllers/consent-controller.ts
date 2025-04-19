@@ -1,7 +1,7 @@
 // src/controllers/consent-controller.ts
 import { Request, Response, NextFunction } from 'express';
 import { ConsentService } from '../services/consent-service.js'; // Adjust the import path as needed
-import { IConsent } from '@banking-sim/common';
+import { IConsent } from '../types/persistance.js';
 
 export class ConsentController {
   private consentService: ConsentService;

@@ -14,9 +14,8 @@ export default function handler(req: Request, res: Response) {
     req.url = '/' + req.url;
   }
   
-  // Prepend "/admin" to the path if not already present
-  if (!req.url.startsWith('/admin')) {
-    req.url = '/admin' + req.url;
+  if(req.url.startsWith('/api')) {
+    req.url = req.url.replace('/api', '');
   }
   
   return adminHandler(req, res);

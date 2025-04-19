@@ -19,12 +19,11 @@
   },
   "dependencies": {
     "@banking-sim/auth-service": "^0.1.0",
-    "@banking-sim/common": "^0.1.0",
     "@banking-sim/core-banking": "^0.1.0",
+    "@banking-sim/core-banking-client": "^0.1.0",
     "@banking-sim/psd2-api": "^0.1.0",
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
-    "find-my-way": "^9.3.0",
     "learna": "^1.0.1",
     "minimist": "^1.2.8",
     "mongodb": "^6.15.0",

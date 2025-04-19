@@ -7,8 +7,8 @@
   },
   "include": ["api/**/*"],
   "references": [
-      { "path": "./packages/common" },
       { "path": "./packages/core-banking" },
+      { "path": "./packages/core-banking-client" },
       { "path": "./packages/auth-service" },
       { "path": "./packages/admin-api" },
       { "path": "./packages/psd2-api" },          

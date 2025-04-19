@@ -1,10 +1,24 @@
 // packages/admin-api/src/controllers/admin-customer-controller.ts
 import { Request, Response } from 'express';
-import { customerAPI } from '@banking-sim/common';
+import { CoreBankingClient } from '@banking-sim/core-banking-client';
 
 export class AdminCustomerController {
+  private client: CoreBankingClient;
+
   /**
-   * Create a new customer by delegating to the common package.
+   * Initialize the customer controller with a core banking client.
+   * @param bankId The bank ID for this controller
+   * @param apiBaseUrl Optional base URL for the core banking API
+   */
+  constructor(bankId: string, apiBaseUrl?: string) {
+    this.client = new CoreBankingClient({
+      bankId,
+      baseUrl: apiBaseUrl
+    });
+  }
+
+  /**
+   * Create a new customer.
    */
   async createCustomer(req: Request, res: Response): Promise<void> {
     try {
@@ -20,7 +34,7 @@ export class AdminCustomerController {
         return;
       }
 
-      const customer = await customerAPI.createCustomer({
+      const customer = await this.client.createCustomer({
         firstName,
         lastName,
         email,
@@ -33,28 +47,15 @@ export class AdminCustomerController {
       });
     } catch (error: any) {
       console.error(`Error in createCustomer: ${error.message}`);
-      if (error.response) {
-        // Errors from the core banking service via common package
-        res.status(error.response.status).json({
-          success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
-        });
-      } else if (error.request) {
-        // No response received
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        // Other errors
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
-      }
+      
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage,
+      });
     }
   }
 
@@ -63,7 +64,9 @@ export class AdminCustomerController {
    */
   async getCustomers(req: Request, res: Response): Promise<void> {
     try {
-      const customers = await customerAPI.getCustomers();
+      // Pass any query parameters as filters
+      const filters = req.query as Record<string, any>;
+      const customers = await this.client.getCustomers(filters);
 
       res.status(200).json({
         success: true,
@@ -72,25 +75,15 @@ export class AdminCustomerController {
       });
     } catch (error: any) {
       console.error(`Error in getCustomers: ${error.message}`);
-      if (error.response) {
-        res.status(error.response.status).json({
-          success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
-        });
-      } else if (error.request) {
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
-      }
+      
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage,
+      });
     }
   }
 
@@ -110,7 +103,7 @@ export class AdminCustomerController {
         return;
       }
 
-      const customer = await customerAPI.getCustomer(customerId);
+      const customer = await this.client.getCustomer(customerId);
 
       if (!customer) {
         res.status(404).json({
@@ -127,25 +120,15 @@ export class AdminCustomerController {
       });
     } catch (error: any) {
       console.error(`Error in getCustomer: ${error.message}`);
-      if (error.response) {
-        res.status(error.response.status).json({
-          success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
-        });
-      } else if (error.request) {
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
-      }
+      
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage,
+      });
     }
   }
 
@@ -166,21 +149,12 @@ export class AdminCustomerController {
         return;
       }
 
-      const updatedCustomer = await customerAPI.updateCustomer(customerId, {
+      const updatedCustomer = await this.client.updateCustomer(customerId, {
         firstName,
         lastName,
         email,
         phone,
       });
-
-      if (!updatedCustomer) {
-        res.status(404).json({
-          success: false,
-          error: 'Not Found',
-          message: `Customer with ID ${customerId} not found`,
-        });
-        return;
-      }
 
       res.status(200).json({
         success: true,
@@ -189,25 +163,25 @@ export class AdminCustomerController {
       });
     } catch (error: any) {
       console.error(`Error in updateCustomer: ${error.message}`);
-      if (error.response) {
-        res.status(error.response.status).json({
+      
+      // Handle specific 404 error for customer not found
+      if (error.response?.status === 404) {
+        res.status(404).json({
           success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
+          error: 'Not Found',
+          message: `Customer not found`,
         });
-      } else if (error.request) {
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
+        return;
       }
+      
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage,
+      });
     }
   }
 
@@ -227,16 +201,7 @@ export class AdminCustomerController {
         return;
       }
 
-      const deleted = await customerAPI.deleteCustomer(customerId);
-
-      if (!deleted) {
-        res.status(404).json({
-          success: false,
-          error: 'Not Found',
-          message: `Customer with ID ${customerId} not found`,
-        });
-        return;
-      }
+      const deleted = await this.client.deleteCustomer(customerId);
 
       res.status(200).json({
         success: true,
@@ -244,25 +209,72 @@ export class AdminCustomerController {
       });
     } catch (error: any) {
       console.error(`Error in deleteCustomer: ${error.message}`);
-      if (error.response) {
-        res.status(error.response.status).json({
+      
+      // Handle specific 404 error for customer not found
+      if (error.response?.status === 404) {
+        res.status(404).json({
           success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
+          error: 'Not Found',
+          message: `Customer not found`,
         });
-      } else if (error.request) {
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
+        return;
       }
+      
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage,
+      });
+    }
+  }
+  
+  /**
+   * Get a customer's accounts.
+   */
+  async getCustomerAccounts(req: Request, res: Response): Promise<void> {
+    try {
+      const customerId = req.params.customerId;
+
+      if (!customerId) {
+        res.status(400).json({
+          success: false,
+          error: 'Bad Request',
+          message: 'customerId is required',
+        });
+        return;
+      }
+
+      const accounts = await this.client.getCustomerAccounts(customerId);
+
+      res.status(200).json({
+        success: true,
+        data: accounts,
+        count: accounts.length,
+      });
+    } catch (error: any) {
+      console.error(`Error in getCustomerAccounts: ${error.message}`);
+      
+      // Handle specific 404 error for customer not found
+      if (error.response?.status === 404) {
+        res.status(404).json({
+          success: false,
+          error: 'Not Found',
+          message: `Customer not found`,
+        });
+        return;
+      }
+      
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage,
+      });
     }
   }
 }

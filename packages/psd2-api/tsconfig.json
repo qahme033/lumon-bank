@@ -7,8 +7,7 @@
   },
   "include": ["src/**/*"],
   "references": [
-    { "path": "../common" },
-    { "path": "../core-banking" },
+    { "path": "../core-banking-client" },
     { "path": "../auth-service" }
   ]
 }

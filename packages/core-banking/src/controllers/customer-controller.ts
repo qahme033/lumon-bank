@@ -1,7 +1,7 @@
 // src/controllers/customer-controller.ts
 import { Request, Response, NextFunction } from 'express';
 import { CustomerService } from '../services/customer-service.js'; // Adjust the import path as needed
-import { ICustomer } from '@banking-sim/common';
+import { ICustomer } from '../types/persistance.js';
 
 export class CustomerController {
   private customerService: CustomerService;

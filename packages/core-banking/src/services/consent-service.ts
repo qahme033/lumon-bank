@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ConsentPermission, ConsentStatus, IConsent } from '@banking-sim/common'
+import { ConsentPermission, ConsentStatus, IConsent } from '../types/persistance.js';
 import { DatabaseService } from './database-service.js';
 import { getDatabaseService } from './mongodb-service.js';
 import { ObjectId } from 'mongodb';
@@ -99,24 +99,24 @@ export class ConsentService {
     }
   
     // Create the consent
-    const consent_id = uuidv4();
-    const created_at = new Date();
-    const expires_at = new Date(Date.now() + 86400000); // Consent valid for 24 hours
-    const authorization_url = `https://example.com/authorize?consent_id=${consent_id}`;
+    const consentId = uuidv4();
+    const createdAt = new Date();
+    const expiresAt = new Date(Date.now() + 86400000); // Consent valid for 24 hours
+    const authorizationUrl = `https://example.com/authorize?consentId=${consentId}`;
   
     const consent: IConsent = {
-      consent_id: new ObjectId(consent_id),
-      customer_id: new ObjectId(customerId),
-      bank_id: bankId,
-      account_ids: validatedAccountIds.map(id => new ObjectId(id)),
+      consentId: new ObjectId(consentId),
+      customerId: new ObjectId(customerId),
+      bankId: bankId,
+      accountIds: validatedAccountIds.map(id => new ObjectId(id)),
       permissions,
       status: ConsentStatus.AWAITING_AUTHORIZATION,
-      created_at,
-      expires_at,
-      authorization_url,
-      psu_ip_address: psuIpAddress,
-      psu_user_agent: psuUserAgent,
-      tpp_id: tppId
+      createdAt,
+      expiresAt,
+      authorizationUrl,
+      psuIpAddress: psuIpAddress,
+      psuUserAgent: psuUserAgent,
+      tppId: tppId
     };
   
     // Store the consent
@@ -132,7 +132,7 @@ export class ConsentService {
     const db = await this.getDatabase();
     const consent = await db.getConsent(consentId);
     
-    if (consent && consent.bank_id.toString() === this.bankId) {
+    if (consent && consent.bankId.toString() === this.bankId) {
       return consent;
     }
     return null;
@@ -144,9 +144,9 @@ export class ConsentService {
   async getConsents(customerId?: string): Promise<IConsent[]> {
     const db = await this.getDatabase();
     
-    const query: any = { bank_id: this.bankId };
+    const query: any = { bankId: this.bankId };
     if (customerId) {
-      query.customer_id = customerId;
+      query.customerId = customerId;
     }
     
     return db.getConsents(query);

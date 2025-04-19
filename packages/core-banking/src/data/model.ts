@@ -1,5 +1,5 @@
 // models.ts
-import {  IAccount, ICustomer, IBalance, ITransaction, IConsent } from '@banking-sim/common';
+import {  IAccount, ICustomer, IBalance, ITransaction, IConsent, IUser } from '../types/persistance.js';
 
 
 
@@ -11,4 +11,5 @@ export interface DatabaseSnapshot {
   payments: Record<string, any>;
   mandates: Record<string, any>;
   consents: Record<string, IConsent>;
+  users: Record<string, IUser>;
 }

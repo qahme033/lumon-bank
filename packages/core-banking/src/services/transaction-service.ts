@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ITransaction } from '@banking-sim/common';
 import { DatabaseService } from './database-service.js';
 import { getDatabaseService } from './mongodb-service.js';
 import { ObjectId } from 'mongodb';
+import { ITransaction } from '../types/persistance.js';
 
 export class TransactionService {
   private db?: DatabaseService;

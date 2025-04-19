@@ -1,7 +1,7 @@
-// database-service.ts
-import { IAccount, IBalance, IBank, IConsent, ICustomer, ITransaction,  } from '@banking-sim/common';
+import { IAccount, IBalance, IBank, IConsent, ICustomer, ITransaction, IUser } from '../types/persistance.js';
 import { DatabaseSnapshot } from '../data/model.js';
 import { ObjectId } from 'mongodb';
+
 
 
 export interface DatabaseService {
@@ -36,6 +36,14 @@ export interface DatabaseService {
   // Banks
   getBank(bankId: string | ObjectId): Promise<IBank | null>;
   addBank(bank: IBank): Promise<void>;
+  
+  // Users
+  addUser(user: IUser): Promise<void>;
+  getUser(userId: string | ObjectId): Promise<IUser | null>;
+  getUserByUsername(username: string): Promise<IUser | null>;
+  getUsers(bankId?: string | ObjectId): Promise<IUser[]>;
+  updateUser(user: IUser): Promise<void>;
+  deleteUser(userId: string | ObjectId): Promise<void>;
   
   // Database operations
   getDatabaseSnapshot(bankId?: string | ObjectId): Promise<DatabaseSnapshot>;

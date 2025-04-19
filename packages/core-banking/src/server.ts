@@ -7,6 +7,7 @@ import { AccountController } from './controllers/account-controller.js';
 import { ConsentController } from './controllers/consent-controller.js';
 import { TransactionController } from './controllers/transaction-controller.js';
 import { DatabaseController } from './controllers/database-controller.js';
+import { UserController } from './controllers/user-controller.js';
 
 export class CoreBankingServer {
   private app: express.Application;
@@ -19,6 +20,8 @@ export class CoreBankingServer {
   private consentController: ConsentController;
   private transactionController: TransactionController;
   private databaseController: DatabaseController;
+  private userController: UserController;
+
 
   constructor(bankId: string, port: number) {
     this.bankId = bankId;
@@ -31,6 +34,7 @@ export class CoreBankingServer {
     this.consentController = new ConsentController(bankId);
     this.transactionController = new TransactionController(bankId);
     this.databaseController = new DatabaseController(bankId);
+    this.userController = new UserController(bankId);
 
     this.configureMiddleware();
     this.configureRoutes();
@@ -83,6 +87,12 @@ export class CoreBankingServer {
     this.app.post('/api/v1/accounts/:account_id/transactions', this.transactionController.createTransaction.bind(this.transactionController));
     this.app.get('/api/v1/transactions/:transaction_id', this.transactionController.getTransaction.bind(this.transactionController));
     this.app.get('/api/v1/accounts/:account_id/transactions', this.transactionController.getTransactionsForAccount.bind(this.transactionController));
+
+    // user routes
+    this.app.post('/api/v1/users', this.userController.createUser.bind(this.userController));
+    this.app.post('/api/v1/users/authenticate', this.userController.authenticateUser.bind(this.userController));
+    this.app.get('/api/v1/users/:user_id', this.userController.getUser.bind(this.userController));
+    this.app.get('/api/v1/users', this.userController.getAllUsers.bind(this.userController));
 
     // Database endpoints
     this.app.get('/api/v1/database/snapshot', this.databaseController.getDatabaseSnapshot.bind(this.databaseController));

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { DatabaseService } from './database-service.js';
 import { getDatabaseService } from './mongodb-service.js';
-import { ICustomer } from '@banking-sim/common';
+import { ICustomer } from '../types/persistance.js';
 import { ObjectId } from 'mongodb';
 
 export class CustomerService {

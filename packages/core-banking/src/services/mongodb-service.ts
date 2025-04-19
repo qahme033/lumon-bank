@@ -1,6 +1,6 @@
 // mongodb-service.ts
 import { MongoClient, Db, ObjectId } from 'mongodb';
-import { IAccount, IBalance, IBank, IConsent, ICustomer, ITransaction,  } from '@banking-sim/common';
+import { IAccount, IBalance, IBank, IConsent, ICustomer, ITransaction, IUser,  } from '../types/persistance.js';
 import { DatabaseSnapshot } from '../data/model.js';
 import { DatabaseService } from './database-service.js';
 
@@ -35,7 +35,9 @@ export class MongoDBService implements DatabaseService {
       await this.db.collection('accounts').createIndex({ customerId: 1 });
       await this.db.collection('transactions').createIndex({ accountId: 1 });
       await this.db.collection('consents').createIndex({ bank_id: 1 });
-      
+      await this.db.collection('users').createIndex({ username: 1 }, { unique: true });
+      await this.db.collection('users').createIndex({ bankId: 1 });
+      await this.db.collection('users').createIndex({ customerId: 1 });
       this.initialized = true;
     }
   }
@@ -133,12 +135,12 @@ export class MongoDBService implements DatabaseService {
   
   async getConsent(consentId: string | ObjectId): Promise<IConsent | null> {
     const objectId = consentId instanceof ObjectId ? consentId : new ObjectId(consentId);
-    return this.db.collection<IConsent>('consents').findOne({ consent_id: objectId });
+    return this.db.collection<IConsent>('consents').findOne({ consentId: objectId });
   }
   
   async updateConsent(consent: IConsent): Promise<void> {
     await this.db.collection<IConsent>('consents').updateOne(
-      { consent_id: consent.consent_id }, 
+      { consentId: consent.consentId }, 
       { $set: consent }
     );
   }
@@ -156,51 +158,105 @@ export class MongoDBService implements DatabaseService {
   async addBank(bank: IBank): Promise<void> {
     await this.db.collection<IBank>('banks').insertOne(bank);
   }
-  
-  // Database snapshot
-  async getDatabaseSnapshot(bankId?: string | ObjectId): Promise<DatabaseSnapshot> {
-    let bankOId = null;
-    if (bankId) {
-      bankOId = bankId instanceof ObjectId ? bankId : new ObjectId(bankId);
-    }
 
-    const query = bankOId ? { bankId: bankOId } : {};
-    const accountQuery = bankOId ? { bankId: bankOId } : {};
-    const consentQuery = bankOId ? { bank_id: bankOId } : {};
-    
-    // Get all collections
-    const [customers, accounts, balances, transactions, payments, mandates, consents] = 
-      await Promise.all([
-        this.db.collection<ICustomer>('customers').find(query).toArray(),
-        this.db.collection<IAccount>('accounts').find(accountQuery).toArray(),
-        this.db.collection<IBalance>('balances').find({}).toArray(),
-        this.db.collection<ITransaction>('transactions').find({}).toArray(),
-        this.db.collection('payments').find(query).toArray(),
-        this.db.collection('mandates').find(query).toArray(),
-        this.db.collection<IConsent>('consents').find(consentQuery).toArray()
-      ]);
-    
-    // Filter balances and transactions by account's bankId if bankId provided
-    let filteredBalances = balances;
-    let filteredTransactions = transactions;
-    
-    if (bankId) {
-      const accountIds = accounts.map(a => a.id);
-      filteredBalances = balances.filter(b => accountIds.includes(b._id));
-      filteredTransactions = transactions.filter(t => accountIds.includes(t.accountId));
+    // Add a new user
+    async addUser(user: IUser): Promise<void> {
+      await this.db.collection<IUser>('users').insertOne(user);
     }
     
-    // Convert arrays to objects keyed by ID for compatibility
-    return {
-      customers: this.arrayToObject(customers, 'id'),
-      accounts: this.arrayToObject(accounts, 'id'),
-      balances: this.arrayToObject(filteredBalances, '_id'),
-      transactions: this.groupTransactionsByAccount(filteredTransactions),
-      payments: this.arrayToObject(payments, 'id'),
-      mandates: this.arrayToObject(mandates, 'id'),
-      consents: this.arrayToObject(consents, 'consent_id')
-    };
-  }
+    // Get a user by ID
+    async getUser(userId: string | ObjectId): Promise<IUser | null> {
+      const objectId = userId instanceof ObjectId ? userId : new ObjectId(userId);
+      return this.db.collection<IUser>('users').findOne({ id: objectId });
+    }
+    
+    // Get a user by username
+    async getUserByUsername(username: string): Promise<IUser | null> {
+      return this.db.collection<IUser>('users').findOne({ username });
+    }
+    
+    // Get all users, optionally filtered by bankId
+    async getUsers(bankId?: string | ObjectId): Promise<IUser[]> {
+      if (bankId) {
+        const objectId = bankId instanceof ObjectId ? bankId : new ObjectId(bankId);
+        return this.db.collection<IUser>('users').find({ bankId: objectId }).toArray();
+      }
+      return this.db.collection<IUser>('users').find({}).toArray();
+    }
+    
+    // Update a user
+    async updateUser(user: IUser): Promise<void> {
+      // Ensure the updatedAt field is set
+      const userToUpdate = {
+        ...user,
+        updatedAt: new Date()
+      };
+      
+      await this.db.collection<IUser>('users').updateOne(
+        { id: user.id },
+        { $set: userToUpdate }
+      );
+    }
+    
+    // Delete a user
+    async deleteUser(userId: string | ObjectId): Promise<void> {
+      const objectId = userId instanceof ObjectId ? userId : new ObjectId(userId);
+      await this.db.collection<IUser>('users').deleteOne({ id: objectId });
+    }
+    
+  
+    async getDatabaseSnapshot(bankId?: string | ObjectId): Promise<DatabaseSnapshot> {
+      let bankOId = null;
+      if (bankId) {
+        bankOId = bankId instanceof ObjectId ? bankId : new ObjectId(bankId);
+      }
+  
+      const query = bankOId ? { bankId: bankOId } : {};
+      const accountQuery = bankOId ? { bankId: bankOId } : {};
+      const consentQuery = bankOId ? { bank_id: bankOId } : {};
+      const userQuery = bankOId ? { bankId: bankOId } : {};
+      
+      // Get all collections
+      const [customers, accounts, balances, transactions, payments, mandates, consents, users] = 
+        await Promise.all([
+          this.db.collection<ICustomer>('customers').find(query).toArray(),
+          this.db.collection<IAccount>('accounts').find(accountQuery).toArray(),
+          this.db.collection<IBalance>('balances').find({}).toArray(),
+          this.db.collection<ITransaction>('transactions').find({}).toArray(),
+          this.db.collection('payments').find(query).toArray(),
+          this.db.collection('mandates').find(query).toArray(),
+          this.db.collection<IConsent>('consents').find(consentQuery).toArray(),
+          this.db.collection<IUser>('users').find(userQuery).toArray()
+        ]);
+      
+      // Filter balances and transactions by account's bankId if bankId provided
+      let filteredBalances = balances;
+      let filteredTransactions = transactions;
+      
+      if (bankId) {
+        const accountIds = accounts.map(a => a.id);
+        filteredBalances = balances.filter(b => accountIds.includes(b._id));
+        filteredTransactions = transactions.filter(t => accountIds.includes(t.accountId));
+      }
+      
+      // Process users to remove sensitive data (passwords)
+      const processedUsers = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      
+      // Convert arrays to objects keyed by ID for compatibility
+      return {
+        customers: this.arrayToObject(customers, 'id'),
+        accounts: this.arrayToObject(accounts, 'id'),
+        balances: this.arrayToObject(filteredBalances, '_id'),
+        transactions: this.groupTransactionsByAccount(filteredTransactions),
+        payments: this.arrayToObject(payments, 'id'),
+        mandates: this.arrayToObject(mandates, 'id'),
+        consents: this.arrayToObject(consents, 'consentId'),
+        users: this.arrayToObject(processedUsers, 'id')
+      };
+    }
   
   // Helper to convert array to object
   private arrayToObject<T>(array: T[], keyField: keyof T): Record<string, T> {
@@ -224,12 +280,12 @@ export class MongoDBService implements DatabaseService {
     return grouped;
   }
   
-  // Reset database for a specific bank
+  // Update reset method to include users
   async reset(bankId: string | ObjectId): Promise<void> {
     const bankOId = bankId instanceof ObjectId ? bankId : new ObjectId(bankId);
 
     const collections = [
-      'customers', 'accounts', 'payments', 'mandates', 'consents'
+      'customers', 'accounts', 'payments', 'mandates', 'consents', 'users'
     ];
     
     // Delete all documents for this bank from these collections

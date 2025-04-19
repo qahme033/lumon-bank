@@ -1,6 +1,6 @@
 // packages/auth-service/src/index.ts
 export { AuthServer } from './auth-server.js';
-export { AuthService } from './auth-service.js';
+// export { AuthService } from './services/auth-service.js';
 export { 
   verifyToken, 
   verifyConsent,

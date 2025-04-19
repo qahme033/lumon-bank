@@ -28,18 +28,18 @@ export interface IBank {
     name: string;
 }
 export interface IConsent {
-    consent_id: ObjectId;
-    customer_id: ObjectId;
-    account_ids: ObjectId[];
+    consentId: ObjectId;
+    customerId: ObjectId;
+    accountIds: ObjectId[];
     permissions: ConsentPermission[];
     status: ConsentStatus;
-    created_at: Date;
-    expires_at: Date;
-    authorization_url: string;
-    bank_id: ObjectId;
-    psu_ip_address: string;
-    psu_user_agent: string;
-    tpp_id: string;
+    createdAt: Date;
+    expiresAt: Date;
+    authorizationUrl: string;
+    bankId: ObjectId;
+    psuIpAddress: string;
+    psuUserAgent: string;
+    tppId: string;
 }
 
 
@@ -83,21 +83,95 @@ export enum AccountType {
   
   export interface IBalance {
     id: ObjectId;
-    // account_id: ObjectId;
+    // accountId: ObjectId;
     available: number;
     current: number;
     pending: number;
   }
 
   export interface IBalanceResponse {
-    account_id: ObjectId;
+    accountId: ObjectId;
     balances: {
-      balance_type: string;
+      balanceType: string;
       amount: number;
       currency: string;
     }[];
     timestamp: string;
   }
+
+  // User role enum
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  CUSTOMER = 'CUSTOMER'
+}
+
+// Authentication type enum
+export enum AuthType {
+  PASSWORD = 'PASSWORD',
+  OAUTH = 'OAUTH',
+  API_KEY = 'API_KEY'
+}
+
+// User interface
+export interface IUser {
+  id: ObjectId;
+  username: string;
+  password?: string;
+  role: UserRole;
+  customerId?: ObjectId;  // Required for customer users, links to a customer record
+  authType: AuthType;
+  bankId: ObjectId;
+  createdAt: Date;
+  updatedAt?: Date;
+  lastLoginAt?: Date;
+  status: UserStatus;
+  email?: string;
+  permissions?: string[];  // Optional array of specific permissions
+}
+
+
+// User status enum
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  LOCKED = 'LOCKED',
+  PENDING_ACTIVATION = 'PENDING_ACTIVATION'
+}
+
+// User session interface for tracking active sessions
+export interface IUserSession {
+  id: ObjectId;
+  userId: ObjectId;
+  token: string;
+  ipAddress: string;
+  userAgent: string;
+  createdAt: Date;
+  expiresAt: Date;
+  lastActivityAt: Date;
+  isActive: boolean;
+}
+
+// Authentication result interface
+export interface IAuthResult {
+  user: Omit<IUser, 'password'>;
+  token: string;
+  expiresAt: Date;
+}
+
+// Token payload interface
+export interface ITokenPayload {
+  sub: string;
+  username: string;
+  role: UserRole;
+  customerId?: string;
+  authType: AuthType;
+  bankId: string;
+  scope: string;
+  iat: number;
+  exp: number;
+  aud: string;
+  iss: string;
+}
 
   // Add a simple utility function to ensure the module is recognized
   export function formatAccountId(id: string): string {

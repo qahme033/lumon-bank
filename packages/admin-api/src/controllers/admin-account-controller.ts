@@ -1,17 +1,19 @@
 // packages/admin-api/src/controllers/admin-account-controller.ts
 import { Request, Response } from 'express';
-import  {accountAPI}  from '@banking-sim/common'; // Adjust the import path based on your setup
-import { AccountType, AccountStatus, IAccount } from '@banking-sim/common';
+import { CoreBankingClient,AccountType, AccountStatus,  } from '@banking-sim/core-banking-client';
 
 export class AdminAccountController {
-  // private accountAPI: AccountAPI;
+  private client: CoreBankingClient;
 
-  constructor() {
-    // accountAPI = new AccountAPI();
+  constructor(bankId: string, apiBaseUrl?: string) {
+    this.client = new CoreBankingClient({
+      bankId,
+      baseUrl: apiBaseUrl
+    });
   }
 
   /**
-   * Create a new account by delegating to the core banking API via the common package.
+   * Create a new account by delegating to the core banking API.
    */
   async createAccount(req: Request, res: Response): Promise<void> {
     try {
@@ -54,12 +56,12 @@ export class AdminAccountController {
         return;
       }
 
-      const account: IAccount = await accountAPI.createAccount({
+      const account = await this.client.createAccount({
         customerId,
         accountType,
         accountName,
         currency,
-        initialBalance: initialBalance || 0,
+        // initialBalance: initialBalance || 0,
         status: status || AccountStatus.ACTIVE,
       });
 
@@ -70,28 +72,14 @@ export class AdminAccountController {
     } catch (error: any) {
       console.error(`Error in createAccount: ${error.message}`);
 
-      if (error.response) {
-        // Errors from core banking API
-        res.status(error.response.status).json({
-          success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
-        });
-      } else if (error.request) {
-        // No response received
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        // Other errors
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
-      }
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage,
+      });
     }
   }
 
@@ -111,7 +99,7 @@ export class AdminAccountController {
         return;
       }
 
-      const accounts: IAccount[] = await accountAPI.getAccounts(customerId);
+      const accounts = await this.client.getCustomerAccounts(customerId);
 
       res.status(200).json({
         success: true,
@@ -121,25 +109,14 @@ export class AdminAccountController {
     } catch (error: any) {
       console.error(`Error in getAccounts: ${error.message}`);
 
-      if (error.response) {
-        res.status(error.response.status).json({
-          success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
-        });
-      } else if (error.request) {
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
-      }
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage,
+      });
     }
   }
 
@@ -159,7 +136,7 @@ export class AdminAccountController {
         return;
       }
 
-      const account: IAccount | null = await accountAPI.getAccount(accountId);
+      const account = await this.client.getAccount(accountId);
 
       if (!account) {
         res.status(404).json({
@@ -177,81 +154,98 @@ export class AdminAccountController {
     } catch (error: any) {
       console.error(`Error in getAccount: ${error.message}`);
 
-      if (error.response) {
-        res.status(error.response.status).json({
-          success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
-        });
-      } else if (error.request) {
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
-      }
-    }
-  }
-
-  /**
-   * Update an existing account.
-   */
-  async updateAccount(req: Request, res: Response): Promise<void> {
-    try {
-      const accountId = req.params.accountId;
-      const updates = req.body;
-
-      if (!accountId) {
-        res.status(400).json({
-          success: false,
-          error: 'Bad Request',
-          message: 'accountId is required',
-        });
-        return;
-      }
-
-      const updatedAccount: IAccount = await accountAPI.updateAccount(accountId, updates);
-
-      res.status(200).json({
-        success: true,
-        message: 'Account updated successfully',
-        data: updatedAccount,
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage,
       });
-    } catch (error: any) {
-      console.error(`Error in updateAccount: ${error.message}`);
-
-      if (error.response) {
-        res.status(error.response.status).json({
-          success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
-        });
-      } else if (error.request) {
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
-      }
     }
   }
 
+  // /**
+  //  * Update an existing account.
+  //  */
+  // async updateAccount(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     const accountId = req.params.accountId;
+  //     const updates = req.body;
+
+  //     if (!accountId) {
+  //       res.status(400).json({
+  //         success: false,
+  //         error: 'Bad Request',
+  //         message: 'accountId is required',
+  //       });
+  //       return;
+  //     }
+
+  //     // Note: We'll need to add an updateAccount method to the CoreBankingClient
+  //     // if it doesn't exist yet
+  //     const updatedAccount = await this.client.updateAccount(accountId, updates);
+
+  //     res.status(200).json({
+  //       success: true,
+  //       message: 'Account updated successfully',
+  //       data: updatedAccount,
+  //     });
+  //   } catch (error: any) {
+  //     console.error(`Error in updateAccount: ${error.message}`);
+
+  //     const statusCode = error.response?.status || 500;
+  //     const errorMessage = error.response?.data?.message || error.message;
+      
+  //     res.status(statusCode).json({
+  //       success: false,
+  //       error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+  //       message: errorMessage,
+  //     });
+  //   }
+  // }
+
+  // /**
+  //  * Delete an account.
+  //  */
+  // async deleteAccount(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     const accountId = req.params.accountId;
+
+  //     if (!accountId) {
+  //       res.status(400).json({
+  //         success: false,
+  //         error: 'Bad Request',
+  //         message: 'accountId is required',
+  //       });
+  //       return;
+  //     }
+
+  //     // Delete the account - assuming the client has this method
+  //     const success = await this.client.deleteAccount(accountId);
+
+  //     res.status(200).json({
+  //       success: true,
+  //       message: 'Account deleted successfully',
+  //     });
+  //   } catch (error: any) {
+  //     console.error(`Error in deleteAccount: ${error.message}`);
+
+  //     const statusCode = error.response?.status || 500;
+  //     const errorMessage = error.response?.data?.message || error.message;
+      
+  //     res.status(statusCode).json({
+  //       success: false,
+  //       error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+  //       message: errorMessage,
+  //     });
+  //   }
+  // }
+
   /**
-   * Delete an account.
+   * Get the balance of an account.
    */
-  async deleteAccount(req: Request, res: Response): Promise<void> {
+  async getBalance(req: Request, res: Response): Promise<void> {
     try {
       const accountId = req.params.accountId;
 
@@ -264,57 +258,9 @@ export class AdminAccountController {
         return;
       }
 
-      await accountAPI.deleteAccount(accountId);
+      const balance = await this.client.getAccountBalance(accountId);
 
-      res.status(200).json({
-        success: true,
-        message: 'Account deleted successfully',
-      });
-    } catch (error: any) {
-      console.error(`Error in deleteAccount: ${error.message}`);
-
-      if (error.response) {
-        res.status(error.response.status).json({
-          success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
-        });
-      } else if (error.request) {
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
-      }
-    }
-  }
-
-  /**
-   * Update the balance of an account.
-   */
-  async updateBalance(req: Request, res: Response): Promise<void> {
-    try {
-      const accountId = req.params.accountId;
-      const balanceData = req.body;
-
-      if (!accountId) {
-        res.status(400).json({
-          success: false,
-          error: 'Bad Request',
-          message: 'accountId is required',
-        });
-        return;
-      }
-
-      const updatedBalance = await accountAPI.getAccountBalance(accountId);
-
-      if (!updatedBalance) {
+      if (!balance) {
         res.status(404).json({
           success: false,
           error: 'Not Found',
@@ -325,31 +271,19 @@ export class AdminAccountController {
 
       res.status(200).json({
         success: true,
-        message: 'Account balance updated successfully',
-        data: updatedBalance,
+        data: balance,
       });
     } catch (error: any) {
-      console.error(`Error in updateBalance: ${error.message}`);
+      console.error(`Error in getBalance: ${error.message}`);
 
-      if (error.response) {
-        res.status(error.response.status).json({
-          success: false,
-          error: error.response.statusText,
-          message: error.response.data.message || 'An error occurred',
-        });
-      } else if (error.request) {
-        res.status(503).json({
-          success: false,
-          error: 'Service Unavailable',
-          message: 'No response from core banking service',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Internal Server Error',
-          message: error.message,
-        });
-      }
+      const statusCode = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage,
+      });
     }
   }
 }

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { AccountStatus, AccountType, IAccount, IBalance } from '@banking-sim/common';
+import { AccountStatus, AccountType, IAccount, IBalance } from '../types/persistance.js';
 import { DatabaseService } from './database-service.js';
 import { getDatabaseService } from './mongodb-service.js';
 import { ObjectId } from 'mongodb';

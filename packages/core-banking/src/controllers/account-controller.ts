@@ -1,7 +1,7 @@
 // src/controllers/account-controller.ts
 import { Request, Response, NextFunction } from 'express';
 import { AccountService } from '../services/account-service.js'; // Adjust the import path as needed
-import { AccountType, AccountStatus, IAccount } from '@banking-sim/common'; // Adjust as needed
+import { AccountType, AccountStatus, IAccount } from '../types/persistance.js';
 
 export class AccountController {
   private accountService: AccountService;

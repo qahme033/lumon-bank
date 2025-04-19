@@ -1,16 +1,14 @@
+// packages/banking-api/src/controllers/account-controller.ts
 import { Request, Response } from 'express';
-import { AccountService, ConsentService } from '@banking-sim/core-banking';
-import { ConsentPermission } from '@banking-sim/common';
+import { CoreBankingClient, ConsentPermission } from '@banking-sim/core-banking-client';
 
 export class AccountController {
   private bankId: string;
-  private accountService: AccountService;
-  private consentService: ConsentService;
+  private coreBankingClient: CoreBankingClient;
 
-  constructor(bankId: string) {
+  constructor(bankId: string, apiBaseUrl?: string) {
     this.bankId = bankId;
-    this.accountService = new AccountService(bankId);
-    this.consentService = new ConsentService(bankId);
+    this.coreBankingClient = new CoreBankingClient(bankId);
   }
 
   /**
@@ -27,7 +25,7 @@ export class AccountController {
       return { valid: false, message: 'consent_id is required' };
     }
 
-    const consent = await this.consentService.getConsent(consentId);
+    const consent = await this.coreBankingClient.getConsent(consentId);
     if (!consent) {
       return { valid: false, message: 'Invalid consent' };
     }
@@ -40,121 +38,144 @@ export class AccountController {
       return { valid: false, message: 'Consent does not include account details permission' };
     }
 
-    if (consent.customer_id.toString() !== customerId) {
+    if (consent.customerId.toString() !== customerId) {
       return { valid: false, message: 'Consent does not match the customer' };
     }
 
     return { valid: true };
   }
 
-  async getAccounts(req: Request, res: Response){
-    try {
-      // Unpack required variables as early as possible
-      const customerId = req.query.customer_id as string;
-      const consentId = req.query.consent_id as string;
+  // async getAccounts(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     // Unpack required variables as early as possible
+  //     const customerId = req.query.customerId as string;
+  //     const consentId = req.query.consent_id as string;
 
-      if (!customerId) {
-        return res.status(400).json({
-          error: 'Bad Request',
-          message: 'customer_id is required'
-        });
-      }
+  //     if (!customerId) {
+  //       res.status(400).json({
+  //         error: 'Bad Request',
+  //         message: 'customerId is required'
+  //       });
+  //       return;
+  //     }
 
-      // Validate consent using the extracted variables
-      const consentValidation = await this.validateAccountConsent(consentId, customerId);
-      if (!consentValidation.valid) {
-        return res.status(403).json({
-          error: 'Consent Error',
-          message: consentValidation.message
-        });
-      }
+  //     // Validate consent using the extracted variables
+  //     const consentValidation = await this.validateAccountConsent(consentId, customerId);
+  //     if (!consentValidation.valid) {
+  //       res.status(403).json({
+  //         error: 'Consent Error',
+  //         message: consentValidation.message
+  //       });
+  //       return;
+  //     }
 
-      const accounts = await this.accountService.getAccounts(customerId);
-      res.status(200).json({
-        accounts,
-        total_count: accounts.length
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: error.message
-      });
-    }
-  }
+  //     const accounts = await this.coreBankingClient.getAccounts(customerId);
+  //     res.status(200).json({
+  //       accounts,
+  //       total_count: accounts.length
+  //     });
+  //   } catch (error: any) {
+  //     console.error(`Error in getAccounts: ${error.message}`);
+      
+  //     const status = error.response?.status || 500;
+  //     const errorMessage = error.response?.data?.message || error.message;
+      
+  //     res.status(status).json({
+  //       error: status === 500 ? 'Internal Server Error' : 'Request Failed',
+  //       message: errorMessage
+  //     });
+  //   }
+  // }
 
-  async getAccount(req: Request, res: Response) {
+  async getAccount(req: Request, res: Response): Promise<void> {
     try {
       // Unpack parameters from both req.params and req.query
       const accountId = req.params.account_id;
-      const customerId = req.query.customer_id as string;
+      const customerId = req.query.customerId as string;
       const consentId = req.query.consent_id as string;
 
       if (!accountId || !customerId) {
-        return res.status(400).json({
+        res.status(400).json({
           error: 'Bad Request',
-          message: 'account_id and customer_id are required'
+          message: 'account_id and customerId are required'
         });
+        return;
       }
 
       const consentValidation = await this.validateAccountConsent(consentId, customerId);
       if (!consentValidation.valid) {
-        return res.status(403).json({
+        res.status(403).json({
           error: 'Consent Error',
           message: consentValidation.message
         });
+        return;
       }
 
-      const account = await this.accountService.getAccount(accountId);
+      const account = await this.coreBankingClient.getAccount(accountId);
       if (!account) {
-        return res.status(404).json({
+        res.status(404).json({
           error: 'Not Found',
           message: `Account with ID ${accountId} not found`
         });
+        return;
       }
 
       res.status(200).json({ account });
     } catch (error: any) {
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: error.message
+      console.error(`Error in getAccount: ${error.message}`);
+      
+      const status = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(status).json({
+        error: status === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage
       });
     }
   }
 
-  async getAccountBalance(req: Request, res: Response) {
+  async getAccountBalance(req: Request, res: Response): Promise<void> {
     try {
       const accountId = req.params.account_id;
-      const customerId = req.query.customer_id as string;
+      const customerId = req.query.customerId as string;
       const consentId = req.query.consent_id as string;
 
       if (!accountId || !customerId) {
-        return res.status(400).json({
+        res.status(400).json({
           error: 'Bad Request',
-          message: 'account_id and customer_id are required'
+          message: 'account_id and customerId are required'
         });
+        return;
       }
 
       const consentValidation = await this.validateAccountConsent(consentId, customerId);
       if (!consentValidation.valid) {
-        return res.status(403).json({
+        res.status(403).json({
           error: 'Consent Error',
           message: consentValidation.message
         });
+        return;
       }
 
-      const balance = await this.accountService.getAccountBalance(accountId);
+      const balance = await this.coreBankingClient.getAccountBalance(accountId);
       if (!balance) {
-        return res.status(404).json({
+        res.status(404).json({
           error: 'Not Found',
           message: `Balance for account with ID ${accountId} not found`
         });
+        return;
       }
 
       res.status(200).json(balance);
     } catch (error: any) {
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: error.message
+      console.error(`Error in getAccountBalance: ${error.message}`);
+      
+      const status = error.response?.status || 500;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      res.status(status).json({
+        error: status === 500 ? 'Internal Server Error' : 'Request Failed',
+        message: errorMessage
       });
     }
   }

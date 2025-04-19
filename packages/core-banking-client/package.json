@@ -1,0 +1,25 @@
+{
+  "name": "@banking-sim/core-banking-client",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rimraf ./dist && rimraf tsconfig.tsbuildinfo",
+    "build": "tsc -b",
+    "start": "node dist/server.js"
+      },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "@banking-sim/core-banking": "*"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^18.15.0",
+    "jest": "^29.5.0",
+    "rimraf": "^5.0.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.4",
+    "eslint": "^8.38.0"
+  }
+}

@@ -1,8 +1,9 @@
 // packages/core-banking/src/data/seed-data.ts
 import { v4 as uuidv4 } from 'uuid';
-import { AccountType, AccountStatus, IBank, IAccount, IBalance, ITransaction, ICustomer } from '@banking-sim/common';
+// import { AccountType, AccountStatus, IBank, IAccount, IBalance, ITransaction, ICustomer } from '';
 import { MongoDBService } from '../services/mongodb-service.js';
 import { ObjectId } from 'mongodb';
+import { AccountType, AccountStatus, IBank, IAccount, IBalance, ITransaction, ICustomer } from '../types/persistance.js';
 
 export async function seedBankData(bankId: string | ObjectId): Promise<void> {
   // Get MongoDB service instance

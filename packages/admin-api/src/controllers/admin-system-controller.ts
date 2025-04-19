@@ -1,7 +1,7 @@
 
 // packages/admin-api/src/controllers/admin-system-controller.ts
 import { Request, Response } from 'express';
-import { seedBankData } from '@banking-sim/core-banking';
+// import { seedBankData } from '@banking-sim/core-banking';
 
 export class AdminSystemController {
   private bankId: string;
@@ -26,23 +26,23 @@ export class AdminSystemController {
     }
   }
 
-  async seedData(req: Request, res: Response): Promise<void> {
-    try {
-      // Seed the database with test data
-      seedBankData(this.bankId);
+  // async seedData(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     // Seed the database with test data
+  //     seedBankData(this.bankId);
       
-      res.status(200).json({
-        success: true,
-        message: 'Test data seeded successfully'
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: 'Internal Server Error',
-        // message: error.message
-      });
-    }
-  }
+  //     res.status(200).json({
+  //       success: true,
+  //       message: 'Test data seeded successfully'
+  //     });
+  //   } catch (error) {
+  //     res.status(500).json({
+  //       success: false,
+  //       error: 'Internal Server Error',
+  //       // message: error.message
+  //     });
+  //   }
+  // }
 
   async getStatus(req: Request, res: Response): Promise<void> {
     try {
